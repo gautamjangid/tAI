@@ -21,12 +21,11 @@ std::string HuggingfaceClient::chat(const std::string& user_query,
     }
 
     // Build JSON payload (OpenAI‑compatible format)
-    std::string payload = R"({"model":)" +  jsonEscape(model_id_) + R"(",")";
-    payload += R"("messages":[)";
+    std::string payload = "{\"model\":\"" + jsonEscape(model_id_) + "\",\"messages\":[";
     if (!system_prompt.empty()) {
-        payload += R"({"role":"system","content":")" + jsonEscape(system_prompt) + R"("},)";
+        payload += "{\"role\":\"system\",\"content\":\"" + jsonEscape(system_prompt) + "\"},";
     }
-    payload += R"({"role":"user","content":")" + jsonEscape(user_query) + R"("}]})";
+    payload += "{\"role\":\"user\",\"content\":\"" + jsonEscape(user_query) + "\"}]}";
 
     std::string response;
     struct curl_slist* headers = nullptr;
