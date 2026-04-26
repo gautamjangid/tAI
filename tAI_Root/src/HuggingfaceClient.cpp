@@ -21,7 +21,7 @@ std::string HuggingfaceClient::chat(const std::string& user_query,
     }
 
     // Build JSON payload (OpenAI‑compatible format)
-    std::string payload = R"({"model":)" +  jsonEscape(model_id_) + R"(",")"
+    std::string payload = R"({"model":)" +  jsonEscape(model_id_) + R"(",")";
     std::string payload += R"("messages":[)";
     if (!system_prompt.empty()) {
         payload += R"({"role":"system","content":")" + jsonEscape(system_prompt) + R"("},)";
