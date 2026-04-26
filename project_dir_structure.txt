@@ -1,0 +1,58 @@
+tAI_Root/
+├── README.md
+├── CMakeLists.txt
+├── scripts/
+│   ├── install.sh          (Linux & macOS)
+│   ├── uninstall.sh
+│   ├── windows_install.bat
+│   └── windows_uninstall.bat
+├── include/
+│   └── tAI/
+│       ├── Config.h
+│       ├── IApiClient.h
+│       ├── OpenAIClient.h
+│       ├── OllamaClient.h
+│       ├── OllamaCloudClient.h
+│       ├── HuggingfaceClient.h
+│       ├── GrokClient.h
+│       ├── OpenRouterClient.h
+│       └── Utils.h
+├── src/
+│   ├── main.cpp
+│   ├── Config.cpp
+│   ├── OpenAIClient.cpp
+│   ├── OllamaClient.cpp
+│   ├── OllamaCloudClient.cpp
+│   ├── HuggingfaceClient.cpp
+│   ├── GrokClient.cpp
+│   ├── OpenRouterClient.cpp
+│   └── Utils.cpp
+└── docs/
+    └── (design documentation)
+
+==============================================================================
+
+NEW ENGINES ADDED:
+  ✓ OllamaCloudClient: Cloud-hosted Ollama models via API
+  ✓ HuggingfaceClient: Hugging Face Inference API
+  ✓ GrokClient: xAI Grok API
+  ✓ OpenRouterClient: OpenRouter model aggregator
+
+SUPPORTED BACKENDS:
+  1. openai - OpenAI GPT-3.5/4 (requires API key)
+  2. ollama_cloud - Ollama Cloud (requires API key)
+  3. huggingface - Hugging Face Inference API (requires API key)
+  4. grok - xAI Grok (requires API key)
+  5. openrouter - OpenRouter (requires API key)
+  6. ollama_local - Local Ollama on localhost:11434 (no key required)
+
+CONFIGURATION KEYS:
+  - default_engine: Which engine to use by default
+  - openai_key: OpenAI API key
+  - ollama_cloud_key: Ollama Cloud API key
+  - ollama_cloud_endpoint: Custom Ollama Cloud endpoint (optional)
+  - huggingface_key: Hugging Face API key
+  - huggingface_model: Default HF model (default: meta-llama/Llama-2-7b-chat-hf)
+  - grok_key: xAI Grok API key
+  - openrouter_key: OpenRouter API key
+  - openrouter_referer: OpenRouter referer for tracking (optional)
