@@ -15,8 +15,9 @@ It works entirely in the terminal, supports multiple free or free‑tier backend
 - **tgpt‑like flags**:
   - `-c` – code generation mode (no explanations)
   - `-s "system"` – set a custom system prompt
-- **History saving** – automatically saves queries and responses to `~/.tAI/history/`
-- **Config file** – save API keys and defaults in `~/.tAI/config.json`
+  - `-d "engine"` / `--default "engine"` – easily set the default engine in your config file
+- **History saving** – automatically saves queries and responses as stylish `.html` files in `~/.tAI/history/`
+- **Config file** – save API keys, templates, and defaults in `~/.tAI/config.json`
 - **Platform independent** – compiles and runs on Linux, macOS, and Windows (via CMake + libcurl + nlohmann_json)
 - **Privacy‑respecting** – direct API calls, no anonymous proxies
 
@@ -57,34 +58,40 @@ Edit it to set your preferences:
   "default_engine": "ollama",
   "ollama": {
     "api_endpoint": "http://localhost:11434",
+    "template": "",
     "enabled": true
   },
   "ollama_cloud": {
     "api_endpoint": "https://api.ollama.cloud",
     "api_key": "",
+    "template": "",
     "enabled": false
   },
   "huggingface": {
     "api_endpoint": "https://api-inference.huggingface.co",
     "api_key": "",
     "model": "meta-llama/Llama-2-7b-chat-hf",
+    "template": "",
     "enabled": false
   },
   "grok": {
     "api_endpoint": "https://api.x.ai/v1",
     "api_key": "",
+    "template": "",
     "enabled": false
   },
   "openrouter": {
     "api_endpoint": "https://openrouter.ai/api/v1",
     "api_key": "",
     "referer": "",
+    "template": "",
     "enabled": false
   }
 }
 ```
 
-- `default_engine`: Engine used when `-m` is not supplied (default: `ollama`).
+- `default_engine`: Engine used when `-m` is not supplied (default: `ollama`). You can easily change this from the CLI via `tAI -d <engine>`.
+- `template`: Optional string to wrap user queries for that specific engine. E.g., setting `"template": "Summarize this: {query}"` will automatically insert the user's prompt wherever `{query}` is placed!
 - Each engine section contains its endpoint, optional API key, and an `enabled` flag.
 - Fill in the appropriate `api_key` for any cloud engine you wish to use.
 
@@ -125,11 +132,14 @@ cmake --build build --config Release
 
 ## 📦 Install
 
-### Linux/macOS (system‑wide)
+### Linux/macOS (Standalone Script)
 
+You can build and install system-wide in one go using the standalone setup script:
 ```bash
-sudo bash scripts/install.sh   # copies tAI to /usr/local/bin
+sudo bash setup.sh
 ```
+
+*(Alternatively, you can manually run `sudo bash scripts/install.sh` after building the project)*
 
 ### Uninstall
 

@@ -124,28 +124,33 @@ std::string Config::getDefaultConfigJson() const {
     ss << "  \"default_engine\": \"ollama\",\n";
     ss << "  \"ollama\": {\n";
     ss << "    \"api_endpoint\": \"http://localhost:11434\",\n";
+    ss << "    \"template\": \"\",\n";
     ss << "    \"enabled\": true\n";
     ss << "  },\n";
     ss << "  \"huggingface\": {\n";
     ss << "    \"api_endpoint\": \"https://api-inference.huggingface.co\",\n";
     ss << "    \"api_key\": \"\",\n";
     ss << "    \"model\": \"meta-llama/Llama-2-7b-chat-hf\",\n";
+    ss << "    \"template\": \"\",\n";
     ss << "    \"enabled\": false\n";
     ss << "  },\n";
     ss << "  \"ollama_cloud\": {\n";
     ss << "    \"api_endpoint\": \"https://api.ollama.cloud\",\n";
     ss << "    \"api_key\": \"\",\n";
+    ss << "    \"template\": \"\",\n";
     ss << "    \"enabled\": false\n";
     ss << "  },\n";
     ss << "  \"grok\": {\n";
     ss << "    \"api_endpoint\": \"https://api.x.ai/v1\",\n";
     ss << "    \"api_key\": \"\",\n";
+    ss << "    \"template\": \"\",\n";
     ss << "    \"enabled\": false\n";
     ss << "  },\n";
     ss << "  \"openrouter\": {\n";
     ss << "    \"api_endpoint\": \"https://openrouter.ai/api/v1\",\n";
     ss << "    \"api_key\": \"\",\n";
     ss << "    \"referer\": \"\",\n";
+    ss << "    \"template\": \"\",\n";
     ss << "    \"enabled\": false\n";
     ss << "  }\n";
     ss << "}\n";
@@ -184,6 +189,9 @@ void Config::load(const std::string& path) {
                 ollama.api_endpoint = endpoint;
             }
             
+            std::string tpl = parseJsonString(section, "template", "");
+            if (!tpl.empty()) ollama.template_format = tpl;
+            
             ollama.enabled = parseJsonBool(section, "enabled", true);
         }
     }
@@ -210,6 +218,9 @@ void Config::load(const std::string& path) {
                 huggingface.model = model;
             }
             
+            std::string tpl = parseJsonString(section, "template", "");
+            if (!tpl.empty()) huggingface.template_format = tpl;
+            
             huggingface.enabled = parseJsonBool(section, "enabled", false);
         }
     }
@@ -231,6 +242,9 @@ void Config::load(const std::string& path) {
                 ollama_cloud.api_key = key;
             }
             
+            std::string tpl = parseJsonString(section, "template", "");
+            if (!tpl.empty()) ollama_cloud.template_format = tpl;
+            
             ollama_cloud.enabled = parseJsonBool(section, "enabled", false);
         }
     }
@@ -251,6 +265,9 @@ void Config::load(const std::string& path) {
             if (!key.empty()) {
                 grok.api_key = key;
             }
+            
+            std::string tpl = parseJsonString(section, "template", "");
+            if (!tpl.empty()) grok.template_format = tpl;
             
             grok.enabled = parseJsonBool(section, "enabled", false);
         }
@@ -278,6 +295,9 @@ void Config::load(const std::string& path) {
                 openrouter.referer = referer;
             }
             
+            std::string tpl = parseJsonString(section, "template", "");
+            if (!tpl.empty()) openrouter.template_format = tpl;
+            
             openrouter.enabled = parseJsonBool(section, "enabled", false);
         }
     }
@@ -304,6 +324,7 @@ void Config::save(const std::string& path) const {
     // === Save Ollama ===
     file << "  \"ollama\": {\n";
     file << "    \"api_endpoint\": \"" << jsonEscape(ollama.api_endpoint) << "\",\n";
+    file << "    \"template\": \"" << jsonEscape(ollama.template_format) << "\",\n";
     file << "    \"enabled\": " << (ollama.enabled ? "true" : "false") << "\n";
     file << "  },\n";
     
@@ -312,6 +333,7 @@ void Config::save(const std::string& path) const {
     file << "    \"api_endpoint\": \"" << jsonEscape(huggingface.api_endpoint) << "\",\n";
     file << "    \"api_key\": \"" << jsonEscape(huggingface.api_key) << "\",\n";
     file << "    \"model\": \"" << jsonEscape(huggingface.model) << "\",\n";
+    file << "    \"template\": \"" << jsonEscape(huggingface.template_format) << "\",\n";
     file << "    \"enabled\": " << (huggingface.enabled ? "true" : "false") << "\n";
     file << "  },\n";
     
@@ -319,6 +341,7 @@ void Config::save(const std::string& path) const {
     file << "  \"ollama_cloud\": {\n";
     file << "    \"api_endpoint\": \"" << jsonEscape(ollama_cloud.api_endpoint) << "\",\n";
     file << "    \"api_key\": \"" << jsonEscape(ollama_cloud.api_key) << "\",\n";
+    file << "    \"template\": \"" << jsonEscape(ollama_cloud.template_format) << "\",\n";
     file << "    \"enabled\": " << (ollama_cloud.enabled ? "true" : "false") << "\n";
     file << "  },\n";
     
@@ -326,6 +349,7 @@ void Config::save(const std::string& path) const {
     file << "  \"grok\": {\n";
     file << "    \"api_endpoint\": \"" << jsonEscape(grok.api_endpoint) << "\",\n";
     file << "    \"api_key\": \"" << jsonEscape(grok.api_key) << "\",\n";
+    file << "    \"template\": \"" << jsonEscape(grok.template_format) << "\",\n";
     file << "    \"enabled\": " << (grok.enabled ? "true" : "false") << "\n";
     file << "  },\n";
     
@@ -334,6 +358,7 @@ void Config::save(const std::string& path) const {
     file << "    \"api_endpoint\": \"" << jsonEscape(openrouter.api_endpoint) << "\",\n";
     file << "    \"api_key\": \"" << jsonEscape(openrouter.api_key) << "\",\n";
     file << "    \"referer\": \"" << jsonEscape(openrouter.referer) << "\",\n";
+    file << "    \"template\": \"" << jsonEscape(openrouter.template_format) << "\",\n";
     file << "    \"enabled\": " << (openrouter.enabled ? "true" : "false") << "\n";
     file << "  }\n";
     file << "}\n";
