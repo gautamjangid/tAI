@@ -5,18 +5,23 @@
 #include <iostream>
 
 HuggingfaceClient::HuggingfaceClient(const std::string& api_key,
-                                     const std::string& model_id)
-    : api_key_(api_key), model_id_(model_id) {}
+                                     const std::string& model_id,
+                                     const std::string& api_endpoint)
+    : api_key_(api_key), model_id_(model_id), endpoint_(api_endpoint) {}
 
 std::string HuggingfaceClient::chat(const std::string& user_query,
                                     const std::string& system_prompt) {
     CURL* curl = curl_easy_init();
     if (!curl) return "Error: Failed to initialize CURL";
 
-    // Construct URL with model ID
-    std::string url = "https://router.huggingface.co/hf-inference/models/" + model_id_ + "/v1/chat/completions";
+    // Build URL: base endpoint + /models/{model_id}/v1/chat/completions
+    std::string url = endpoint_;
+    if (!url.empty() && url.back() != '/') {
+        url += '/';
+    }
+    url += "models/" + model_id_ + "/v1/chat/completions";
 
-    // Build JSON payload with proper escaping
+    // Build JSON payload (OpenAI‑compatible format)
     std::string payload = R"({"messages":[)";
     if (!system_prompt.empty()) {
         payload += R"({"role":"system","content":")" + jsonEscape(system_prompt) + R"("},)";
@@ -42,6 +47,5 @@ std::string HuggingfaceClient::chat(const std::string& user_query,
 
     curl_slist_free_all(headers);
     curl_easy_cleanup(curl);
-
     return response;
 }

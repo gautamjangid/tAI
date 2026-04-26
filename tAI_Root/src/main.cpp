@@ -54,7 +54,6 @@ int main(int argc, char* argv[]) {
 
     for (int i = 1; i < argc; ++i) {
         std::string arg = argv[i];
-
         if (arg == "-h" || arg == "--help") {
             printUsage();
             return 0;
@@ -78,7 +77,6 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    // Validate that we have a prompt
     if (user_query.empty()) {
         std::cerr << "Error: No prompt provided.\n";
         printUsage();
@@ -93,12 +91,11 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    // Set code mode system prompt if needed
     if (code_mode && system_prompt.empty()) {
         system_prompt = "You are an expert programmer. Provide only the code without any explanations or comments.";
     }
 
-    // Resolve API key from config if not supplied on CLI
+    // Determine which API key to use if not provided on command line
     if (api_key.empty()) {
         if (engine == "ollama_cloud") {
             api_key = config.ollama_cloud.api_key;
@@ -112,39 +109,37 @@ int main(int argc, char* argv[]) {
         // ollama (local) does not need an API key
     }
 
-    // Create appropriate client
     IApiClient* client = nullptr;
-
     if (engine == "ollama") {
         client = new OllamaClient();
     } else if (engine == "ollama_cloud") {
         if (api_key.empty()) {
             std::cerr << "Error: Ollama Cloud API key required.\n";
-            std::cerr << "Provide it via --api-key or set it in config under ollama_cloud.api_key.\n";
+            std::cerr << "Provide it via --api-key or set it in config.\n";
             return 1;
         }
         client = new OllamaCloudClient(api_key, config.ollama_cloud.api_endpoint);
     } else if (engine == "huggingface") {
         if (api_key.empty()) {
             std::cerr << "Error: Hugging Face API key required.\n";
-            std::cerr << "Provide it via --api-key or set it in config under huggingface.api_key.\n";
+            std::cerr << "Provide it via --api-key or set it in config.\n";
             return 1;
         }
-        client = new HuggingfaceClient(api_key, config.huggingface.model);
+        client = new HuggingfaceClient(api_key, config.huggingface.model, config.huggingface.api_endpoint);
     } else if (engine == "grok") {
         if (api_key.empty()) {
-            std::cerr << "Error: xAI Grok API key required.\n";
-            std::cerr << "Provide it via --api-key or set it in config under grok.api_key.\n";
+            std::cerr << "Error: Grok API key required.\n";
+            std::cerr << "Provide it via --api-key or set it in config.\n";
             return 1;
         }
-        client = new GrokClient(api_key);
+        client = new GrokClient(api_key, config.grok.api_endpoint);
     } else if (engine == "openrouter") {
         if (api_key.empty()) {
             std::cerr << "Error: OpenRouter API key required.\n";
-            std::cerr << "Provide it via --api-key or set it in config under openrouter.api_key.\n";
+            std::cerr << "Provide it via --api-key or set it in config.\n";
             return 1;
         }
-        client = new OpenRouterClient(api_key, config.openrouter.referer);
+        client = new OpenRouterClient(api_key, config.openrouter.api_endpoint, config.openrouter.referer);
     }
 
     if (!client) {
@@ -152,7 +147,6 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    // Perform the API call
     try {
         std::string result = client->chat(user_query, system_prompt);
         std::cout << result << std::endl;
