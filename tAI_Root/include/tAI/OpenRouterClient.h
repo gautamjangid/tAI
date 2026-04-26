@@ -12,6 +12,3 @@ private:
     std::string api_key_;
     std::string referer_;
 };
-```
-
-Now I'll create the implementation files. Let me continue with the .cpp files.
