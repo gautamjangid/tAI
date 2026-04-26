@@ -16,13 +16,13 @@ std::string HuggingfaceClient::chat(const std::string& user_query,
 
     // Build URL: base endpoint + /models/{model_id}/v1/chat/completions
     std::string url = endpoint_;
-    if (!url.empty() && url.back() != '/') {
-        url += '/';
+    if (url.empty()) {
+        url = "https://router.huggingface.co/v1/chat/completions"
     }
-    url += "models/" + model_id_ + "/v1/chat/completions";
 
     // Build JSON payload (OpenAI‑compatible format)
-    std::string payload = R"({"messages":[)";
+    std::string payload = R"({"model":)" +  jsonEscape(model_id) + R"(",")"
+    std::string payload += R"("messages":[)";
     if (!system_prompt.empty()) {
         payload += R"({"role":"system","content":")" + jsonEscape(system_prompt) + R"("},)";
     }
