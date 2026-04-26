@@ -35,6 +35,13 @@ endif()
 
 message(STATUS "Found CURL: ${CURL_INCLUDE_DIRS}")
 
+include(FetchContent)
+FetchContent_Declare(
+    nlohmann_json
+    URL https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz
+)
+FetchContent_MakeAvailable(nlohmann_json)
+
 # ============================================================================
 
 # Source Files
@@ -80,6 +87,7 @@ target_include_directories(tAI
 target_link_libraries(tAI
     PRIVATE
         CURL::libcurl
+        nlohmann_json::nlohmann_json
 )
 
 # ============================================================================
