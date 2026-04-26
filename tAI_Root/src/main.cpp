@@ -17,6 +17,7 @@ void printUsage() {
     std::cout << "Usage: tAI [options] \"prompt\"\n\n"
               << "Options:\n"
               << "  -c                  Code mode (no explanations)\n"
+              << "  -d, --default       Set the default engine in config and exit\n"
               << "  -s <system>         Custom system prompt\n"
               << "  -m <engine>         AI engine (see Supported Engines below)\n"
               << "  --api-key <key>     API key for the selected engine (overrides config)\n"
@@ -61,6 +62,17 @@ int main(int argc, char* argv[]) {
         if (arg == "-h" || arg == "--help") {
             printUsage();
             return 0;
+        } else if (arg == "-d" || arg == "--default") {
+            if (i + 1 < argc) {
+                std::string new_default = argv[++i];
+                config.default_engine = new_default;
+                config.save(configPath);
+                std::cout << "Default engine set to: " << new_default << std::endl;
+                return 0;
+            } else {
+                std::cerr << "Error: Engine name required for " << arg << "\n";
+                return 1;
+            }
         } else if (arg == "-c") {
             code_mode = true;
         } else if (arg == "-s" && i + 1 < argc) {
@@ -97,6 +109,26 @@ int main(int argc, char* argv[]) {
 
     if (code_mode && system_prompt.empty()) {
         system_prompt = "You are an expert programmer. Provide only the code without any explanations or comments.";
+    }
+
+    // Apply template if configured
+    std::string template_format = "";
+    if (engine == "ollama") template_format = config.ollama.template_format;
+    else if (engine == "ollama_cloud") template_format = config.ollama_cloud.template_format;
+    else if (engine == "huggingface") template_format = config.huggingface.template_format;
+    else if (engine == "grok") template_format = config.grok.template_format;
+    else if (engine == "openrouter") template_format = config.openrouter.template_format;
+
+    std::string original_query = user_query; // Keep original for history
+    if (!template_format.empty()) {
+        size_t pos = template_format.find("{query}");
+        if (pos != std::string::npos) {
+            user_query = template_format;
+            user_query.replace(pos, 7, original_query);
+        } else {
+            // Fallback if {query} is not in the template
+            user_query = template_format + "\n" + original_query;
+        }
     }
 
     // Determine which API key to use if not provided on command line
@@ -165,11 +197,17 @@ int main(int argc, char* argv[]) {
             std::stringstream ss;
             ss << std::put_time(std::localtime(&in_time_t), "%Y%m%d_%H%M%S");
 
-            std::string filename = historyDir + "/" + engine + "_" + ss.str() + ".txt";
+            std::string filename = historyDir + "/" + engine + "_" + ss.str() + ".html";
             std::ofstream out(filename);
             if (out.is_open()) {
-                out << "Query:\n" << user_query << "\n\n";
-                out << "Response:\n" << result << "\n";
+                out << "<!DOCTYPE html>\n<html>\n<head>\n<title>tAI History</title>\n";
+                out << "<style>\nbody { font-family: sans-serif; margin: 2rem; }\n";
+                out << ".query { background: #f0f0f0; padding: 1rem; border-radius: 5px; }\n";
+                out << ".response { background: #e8f4f8; padding: 1rem; border-radius: 5px; margin-top: 1rem; }\n";
+                out << "</style>\n</head>\n<body>\n";
+                out << "<h2>Query:</h2>\n<div class=\"query\"><pre>" << original_query << "</pre></div>\n";
+                out << "<h2>Response:</h2>\n<div class=\"response\"><pre>" << result << "</pre></div>\n";
+                out << "</body>\n</html>\n";
                 out.close();
             }
         } catch (const std::exception& e) {
