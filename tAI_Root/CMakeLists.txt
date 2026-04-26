@@ -7,6 +7,7 @@ project(tAI
 )
 
 # ============================================================================
+
 # Project Settings
 # ============================================================================
 
@@ -22,10 +23,10 @@ else()
 endif()
 
 # ============================================================================
+
 # Dependencies
 # ============================================================================
 
-# Find CURL (required for all backends)
 find_package(CURL REQUIRED)
 
 if(NOT CURL_FOUND)
@@ -35,13 +36,13 @@ endif()
 message(STATUS "Found CURL: ${CURL_INCLUDE_DIRS}")
 
 # ============================================================================
+
 # Source Files
 # ============================================================================
 
 set(TAI_HEADERS
     include/tAI/Config.h
     include/tAI/IApiClient.h
-    include/tAI/OpenAIClient.h
     include/tAI/OllamaClient.h
     include/tAI/OllamaCloudClient.h
     include/tAI/HuggingfaceClient.h
@@ -53,7 +54,6 @@ set(TAI_HEADERS
 set(TAI_SOURCES
     src/main.cpp
     src/Config.cpp
-    src/OpenAIClient.cpp
     src/OllamaClient.cpp
     src/OllamaCloudClient.cpp
     src/HuggingfaceClient.cpp
@@ -63,6 +63,7 @@ set(TAI_SOURCES
 )
 
 # ============================================================================
+
 # Executable Target
 # ============================================================================
 
@@ -82,6 +83,7 @@ target_link_libraries(tAI
 )
 
 # ============================================================================
+
 # Compiler Options
 # ============================================================================
 
@@ -92,6 +94,7 @@ else()
 endif()
 
 # ============================================================================
+
 # Installation Rules
 # ============================================================================
 
@@ -124,6 +127,7 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/docs/tAI.1")
 endif()
 
 # ============================================================================
+
 # Summary
 # ============================================================================
 
@@ -135,16 +139,18 @@ message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 message(STATUS "CXX Standard: ${CMAKE_CXX_STANDARD}")
 message(STATUS "CURL: ${CURL_LIBRARIES}")
 message(STATUS "")
+
 message(STATUS "Supported Engines:")
-message(STATUS "  - OpenAI (GPT-3.5/GPT-4)")
-message(STATUS "  - Ollama (local models)")
-message(STATUS "  - Ollama Cloud (cloud models via API)")
-message(STATUS "  - Hugging Face (Inference API)")
+message(STATUS "  - Ollama (local)")
+message(STATUS "  - Ollama Cloud")
+message(STATUS "  - Hugging Face")
 message(STATUS "  - xAI Grok")
-message(STATUS "  - OpenRouter (model aggregator)")
+message(STATUS "  - OpenRouter")
 message(STATUS "")
+
 message(STATUS "Installation prefix: ${CMAKE_INSTALL_PREFIX}")
 message(STATUS "")
+
 message(STATUS "Build with: cmake --build . --config Release")
 message(STATUS "Install with: cmake --install . --prefix /usr/local")
 message(STATUS "")

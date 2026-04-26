@@ -5,34 +5,114 @@
 
 /**
  * @class Config
- * @brief Configuration manager for tAI
+ * @brief Configuration manager for tAI with structured nested engine configs
  *
  * Handles loading and saving configuration from/to ~/.tAI/config.json
- * Stores user preferences such as API keys, default engine, and other settings.
+ * Supports multiple AI engines with per-engine configuration.
  *
  * Configuration file format (JSON):
  * {
- *   "default_engine": "openai",
- *   "openai_key": "sk-xxxxxxxx",
- *   "ollama_cloud_key": "ollama-key-xxxxxxxx",
- *   "ollama_cloud_endpoint": "https://api.ollama.cloud",
- *   "huggingface_key": "hf_xxxxxxxx",
- *   "huggingface_model": "meta-llama/Llama-2-7b-chat-hf",
- *   "grok_key": "xai-xxxxxxxx",
- *   "openrouter_key": "sk-or-xxxxxxxx",
- *   "openrouter_referer": "https://myapp.com"
+ *   "default_engine": "ollama",
+ *   "ollama": {
+ *     "api_endpoint": "http://localhost:11434",
+ *     "enabled": true
+ *   },
+ *   "huggingface": {
+ *     "api_endpoint": "https://api-inference.huggingface.co",
+ *     "api_key": "",
+ *     "model": "meta-llama/Llama-2-7b-chat-hf",
+ *     "enabled": false
+ *   },
+ *   "ollama_cloud": {
+ *     "api_endpoint": "https://api.ollama.cloud",
+ *     "api_key": "",
+ *     "enabled": false
+ *   },
+ *   "grok": {
+ *     "api_endpoint": "https://api.x.ai/v1",
+ *     "api_key": "",
+ *     "enabled": false
+ *   },
+ *   "openrouter": {
+ *     "api_endpoint": "https://openrouter.ai/api/v1",
+ *     "api_key": "",
+ *     "referer": "",
+ *     "enabled": false
+ *   }
  * }
+ */
+
+// Individual engine configuration structures
+struct OllamaEngineConfig {
+    std::string api_endpoint;
+    bool enabled;
+    
+    OllamaEngineConfig() 
+        : api_endpoint("http://localhost:11434"), enabled(true) {}
+};
+
+struct HuggingfaceEngineConfig {
+    std::string api_endpoint;
+    std::string api_key;
+    std::string model;
+    bool enabled;
+    
+    HuggingfaceEngineConfig()
+        : api_endpoint("https://api-inference.huggingface.co"),
+          api_key(""),
+          model("meta-llama/Llama-2-7b-chat-hf"),
+          enabled(false) {}
+};
+
+struct OllamaCloudEngineConfig {
+    std::string api_endpoint;
+    std::string api_key;
+    bool enabled;
+    
+    OllamaCloudEngineConfig()
+        : api_endpoint("https://api.ollama.cloud"),
+          api_key(""),
+          enabled(false) {}
+};
+
+struct GrokEngineConfig {
+    std::string api_endpoint;
+    std::string api_key;
+    bool enabled;
+    
+    GrokEngineConfig()
+        : api_endpoint("https://api.x.ai/v1"),
+          api_key(""),
+          enabled(false) {}
+};
+
+struct OpenRouterEngineConfig {
+    std::string api_endpoint;
+    std::string api_key;
+    std::string referer;
+    bool enabled;
+    
+    OpenRouterEngineConfig()
+        : api_endpoint("https://openrouter.ai/api/v1"),
+          api_key(""),
+          referer(""),
+          enabled(false) {}
+};
+
+/**
+ * @class Config
+ * @brief Main configuration manager
+ *
+ * Loads and manages all engine configurations from a single JSON file.
+ * Default engine is Ollama (local) which requires no API key.
  */
 class Config {
 public:
     /**
      * @brief Constructor
      * Initializes config with default values:
-     * - default_engine: "openai"
-     * - all API keys: "" (empty)
-     * - ollama_cloud_endpoint: "https://api.ollama.cloud"
-     * - huggingface_model: "meta-llama/Llama-2-7b-chat-hf"
-     * - openrouter_referer: "" (empty)
+     * - default_engine: "ollama" (local, free)
+     * - All engine configs initialized with defaults
      */
     Config();
 
@@ -41,7 +121,7 @@ public:
      * @param path Path to configuration file
      *
      * Reads and parses JSON configuration file. If file doesn't exist,
-     * silently returns with default values.
+     * creates a default config file at that location.
      */
     void load(const std::string& path);
 
@@ -49,7 +129,7 @@ public:
      * @brief Save configuration to file
      * @param path Path to configuration file
      *
-     * Writes current configuration as JSON to file.
+     * Writes current configuration as formatted JSON to file.
      * Creates parent directories if they don't exist.
      */
     void save(const std::string& path) const;
@@ -64,16 +144,64 @@ public:
      */
     std::string getConfigPath() const;
 
-    // Configuration fields - API Keys
-    std::string openai_key;              ///< OpenAI API key (for GPT models)
-    std::string ollama_cloud_key;        ///< Ollama Cloud API key
-    std::string huggingface_key;         ///< Hugging Face Inference API key
-    std::string grok_key;                ///< xAI Grok API key
-    std::string openrouter_key;          ///< OpenRouter API key
+    /**
+     * @brief Create a default configuration file
+     * @param path Path where to create the default config
+     *
+     * Creates a well-formatted default config file with all engines
+     * configured to their default endpoints. Ollama (local) is enabled by default.
+     */
+    void createDefaultConfig(const std::string& path) const;
 
-    // Configuration fields - Engine settings
-    std::string default_engine;          ///< Default AI engine (openai, ollama_cloud, huggingface, grok, openrouter, ollama_local)
-    std::string ollama_cloud_endpoint;   ///< Ollama Cloud endpoint URL
-    std::string huggingface_model;       ///< Hugging Face model ID
-    std::string openrouter_referer;      ///< OpenRouter referer URL (for tracking)
+    // Main settings
+    std::string default_engine;  ///< Default AI engine (ollama, huggingface, ollama_cloud, grok, openrouter)
+
+    // Engine-specific configurations
+    OllamaEngineConfig ollama;              ///< Local Ollama (free, self-hosted)
+    HuggingfaceEngineConfig huggingface;    ///< Hugging Face (free tier available)
+    OllamaCloudEngineConfig ollama_cloud;   ///< Ollama Cloud
+    GrokEngineConfig grok;                  ///< xAI Grok
+    OpenRouterEngineConfig openrouter;      ///< OpenRouter (free tier available)
+
+private:
+    /**
+     * @brief Parse a string value from JSON
+     * @param json The JSON string
+     * @param key The key to search for
+     * @param defaultValue Default value if key not found
+     * @return Parsed value or default
+     */
+    std::string parseJsonString(const std::string& json, 
+                               const std::string& key,
+                               const std::string& defaultValue = "");
+
+    /**
+     * @brief Parse a boolean value from JSON
+     * @param json The JSON string
+     * @param key The key to search for
+     * @param defaultValue Default value if key not found
+     * @return Parsed boolean or default
+     */
+    bool parseJsonBool(const std::string& json,
+                      const std::string& key,
+                      bool defaultValue = false);
+
+    /**
+     * @brief Escape a string for JSON output
+     * @param input The string to escape
+     * @return JSON-safe escaped string
+     */
+    std::string jsonEscape(const std::string& input) const;
+
+    /**
+     * @brief Get the default config as a JSON string
+     * @return Formatted JSON string with all defaults
+     */
+    std::string getDefaultConfigJson() const;
+
+    /**
+     * @brief Ensure directory exists
+     * @param path Directory path
+     */
+    void ensureDirectoryExists(const std::string& path) const;
 };
