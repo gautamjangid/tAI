@@ -1,6 +1,10 @@
 #include <iostream>
 #include <string>
 #include <cstring>
+#include <filesystem>
+#include <fstream>
+#include <chrono>
+#include <iomanip>
 #include "tAI/Config.h"
 #include "tAI/OllamaClient.h"
 #include "tAI/OllamaCloudClient.h"
@@ -150,6 +154,27 @@ int main(int argc, char* argv[]) {
     try {
         std::string result = client->chat(user_query, system_prompt);
         std::cout << result << std::endl;
+
+        // Save history
+        try {
+            std::string historyDir = getHomeDirectory() + "/.tAI/history";
+            std::filesystem::create_directories(historyDir);
+
+            auto now = std::chrono::system_clock::now();
+            auto in_time_t = std::chrono::system_clock::to_time_t(now);
+            std::stringstream ss;
+            ss << std::put_time(std::localtime(&in_time_t), "%Y%m%d_%H%M%S");
+
+            std::string filename = historyDir + "/" + engine + "_" + ss.str() + ".txt";
+            std::ofstream out(filename);
+            if (out.is_open()) {
+                out << "Query:\n" << user_query << "\n\n";
+                out << "Response:\n" << result << "\n";
+                out.close();
+            }
+        } catch (const std::exception& e) {
+            std::cerr << "Warning: Failed to save history: " << e.what() << "\n";
+        }
     } catch (const std::exception& e) {
         std::cerr << "Error during API call: " << e.what() << "\n";
         delete client;

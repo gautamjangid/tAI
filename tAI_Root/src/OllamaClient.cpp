@@ -1,6 +1,7 @@
 #include "tAI/OllamaClient.h"
 #include "tAI/Utils.h"
 #include <curl/curl.h>
+#include <nlohmann/json.hpp>
 
 OllamaClient::OllamaClient() {}
 
@@ -32,6 +33,17 @@ std::string OllamaClient::chat(const std::string& user_query, const std::string&
     
     if (res != CURLE_OK) {
         response = "Error: " + std::string(curl_easy_strerror(res));
+    } else {
+        try {
+            auto j = nlohmann::json::parse(response);
+            if (j.contains("message") && j["message"].contains("content")) {
+                response = j["message"]["content"].get<std::string>();
+            } else if (j.contains("error")) {
+                response = "API Error: " + j["error"].get<std::string>();
+            }
+        } catch (const nlohmann::json::parse_error& e) {
+            // Keep original response if parsing fails
+        }
     }
     
     curl_slist_free_all(headers);

@@ -15,8 +15,9 @@ It works entirely in the terminal, supports multiple free or free‑tier backend
 - **tgpt‑like flags**:
   - `-c` – code generation mode (no explanations)
   - `-s "system"` – set a custom system prompt
+- **History saving** – automatically saves queries and responses to `~/.tAI/history/`
 - **Config file** – save API keys and defaults in `~/.tAI/config.json`
-- **Platform independent** – compiles and runs on Linux, macOS, and Windows (via CMake + libcurl)
+- **Platform independent** – compiles and runs on Linux, macOS, and Windows (via CMake + libcurl + nlohmann_json)
 - **Privacy‑respecting** – direct API calls, no anonymous proxies
 
 ## 🚀 Quick Start
@@ -91,13 +92,13 @@ You can also override the config path with `--config /path/to/config.json`.
 
 ## 🛠️ Build from Source
 
-Requirements: CMake ≥ 3.14, C++17 compiler, libcurl (with headers).
+Requirements: CMake ≥ 3.14, C++17 compiler, libcurl (with headers). `nlohmann/json` is fetched automatically via CMake.
 
 ### Linux / macOS
 
 ```bash
 # Install dependencies (Debian/Ubuntu):
-sudo apt install cmake g++ libcurl4-openssl-dev
+sudo apt install cmake g++ libcurl4-openssl-dev nlohmann-json3-dev
 
 # macOS (Homebrew):
 brew install cmake curl

@@ -3,6 +3,7 @@
 #include <curl/curl.h>
 #include <sstream>
 #include <iostream>
+#include <nlohmann/json.hpp>
 
 GrokClient::GrokClient(const std::string& api_key,
                        const std::string& endpoint)
@@ -39,6 +40,24 @@ std::string GrokClient::chat(const std::string& user_query,
     CURLcode res = curl_easy_perform(curl);
     if (res != CURLE_OK) {
         std::cerr << "CURL error: " << curl_easy_strerror(res) << std::endl;
+    } else {
+        try {
+            auto j = nlohmann::json::parse(response);
+            if (j.contains("choices") && j["choices"].is_array() && !j["choices"].empty()) {
+                auto& choice = j["choices"][0];
+                if (choice.contains("message") && choice["message"].contains("content")) {
+                    response = choice["message"]["content"].get<std::string>();
+                }
+            } else if (j.contains("error")) {
+                if (j["error"].is_object() && j["error"].contains("message")) {
+                    response = "API Error: " + j["error"]["message"].get<std::string>();
+                } else if (j["error"].is_string()) {
+                    response = "API Error: " + j["error"].get<std::string>();
+                }
+            }
+        } catch (const nlohmann::json::parse_error& e) {
+            // Keep original response if parsing fails
+        }
     }
 
     curl_slist_free_all(headers);

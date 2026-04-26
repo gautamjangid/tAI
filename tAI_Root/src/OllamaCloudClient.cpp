@@ -3,6 +3,7 @@
 #include <curl/curl.h>
 #include <sstream>
 #include <iostream>
+#include <nlohmann/json.hpp>
 
 OllamaCloudClient::OllamaCloudClient(const std::string& api_key, 
                                      const std::string& endpoint)
@@ -42,6 +43,17 @@ std::string OllamaCloudClient::chat(const std::string& user_query,
     CURLcode res = curl_easy_perform(curl);
     if (res != CURLE_OK) {
         std::cerr << "CURL error: " << curl_easy_strerror(res) << std::endl;
+    } else {
+        try {
+            auto j = nlohmann::json::parse(response);
+            if (j.contains("message") && j["message"].contains("content")) {
+                response = j["message"]["content"].get<std::string>();
+            } else if (j.contains("error")) {
+                response = "API Error: " + j["error"].get<std::string>();
+            }
+        } catch (const nlohmann::json::parse_error& e) {
+            // Keep original response if parsing fails
+        }
     }
     
     curl_slist_free_all(headers);
