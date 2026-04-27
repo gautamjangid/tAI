@@ -189,25 +189,43 @@ int main(int argc, char* argv[]) {
 
         // Save history
         try {
-            std::string historyDir = getHomeDirectory() + "/.tAI/history";
-            std::filesystem::create_directories(historyDir);
-
             auto now = std::chrono::system_clock::now();
             auto in_time_t = std::chrono::system_clock::to_time_t(now);
-            std::stringstream ss;
-            ss << std::put_time(std::localtime(&in_time_t), "%Y%m%d_%H%M%S");
+            
+            std::stringstream date_ss;
+            date_ss << std::put_time(std::localtime(&in_time_t), "%Y-%m-%d");
+            std::string date_str = date_ss.str();
 
-            std::string filename = historyDir + "/" + engine + "_" + ss.str() + ".html";
-            std::ofstream out(filename);
+            std::stringstream hour_ss;
+            hour_ss << std::put_time(std::localtime(&in_time_t), "%H");
+            std::string hour_str = hour_ss.str();
+
+            std::stringstream full_time_ss;
+            full_time_ss << std::put_time(std::localtime(&in_time_t), "%Y-%m-%d %H:%M:%S");
+
+            std::string historyDir = getHomeDirectory() + "/.tAI/history/" + date_str;
+            std::filesystem::create_directories(historyDir);
+
+            std::string filename = historyDir + "/" + hour_str + ".html";
+            bool file_exists = std::filesystem::exists(filename);
+
+            std::ofstream out(filename, std::ios::app);
             if (out.is_open()) {
-                out << "<!DOCTYPE html>\n<html>\n<head>\n<title>tAI History</title>\n";
-                out << "<style>\nbody { font-family: sans-serif; margin: 2rem; }\n";
-                out << ".query { background: #f0f0f0; padding: 1rem; border-radius: 5px; }\n";
-                out << ".response { background: #e8f4f8; padding: 1rem; border-radius: 5px; margin-top: 1rem; }\n";
-                out << "</style>\n</head>\n<body>\n";
+                if (!file_exists) {
+                    out << "<!DOCTYPE html>\n<html>\n<head>\n<title>tAI History - " << date_str << "</title>\n";
+                    out << "<style>\nbody { font-family: sans-serif; margin: 2rem; }\n";
+                    out << ".entry { border-bottom: 1px solid #ccc; padding-bottom: 1rem; margin-bottom: 1rem; }\n";
+                    out << ".query { background: #f0f0f0; padding: 1rem; border-radius: 5px; }\n";
+                    out << ".response { background: #e8f4f8; padding: 1rem; border-radius: 5px; margin-top: 1rem; }\n";
+                    out << ".timestamp { color: #888; font-size: 0.9em; font-weight: bold; margin-bottom: 0.5rem; }\n";
+                    out << "</style>\n</head>\n<body>\n";
+                }
+                
+                out << "<div class=\"entry\">\n";
+                out << "<div class=\"timestamp\">[" << full_time_ss.str() << "] Engine: " << engine << "</div>\n";
                 out << "<h2>Query:</h2>\n<div class=\"query\"><pre>" << original_query << "</pre></div>\n";
                 out << "<h2>Response:</h2>\n<div class=\"response\"><pre>" << result << "</pre></div>\n";
-                out << "</body>\n</html>\n";
+                out << "</div>\n";
                 out.close();
             }
         } catch (const std::exception& e) {

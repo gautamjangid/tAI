@@ -16,7 +16,7 @@ It works entirely in the terminal, supports multiple free or free‑tier backend
   - `-c` – code generation mode (no explanations)
   - `-s "system"` – set a custom system prompt
   - `-d "engine"` / `--default "engine"` – easily set the default engine in your config file
-- **History saving** – automatically saves queries and responses as stylish `.html` files in `~/.tAI/history/`
+- **History saving** – automatically saves queries and responses as stylish `.html` files in `~/.tAI/history/YYYY-MM-DD/HH.html` (day-wise folders with hourly appends).
 - **Config file** – save API keys, templates, and defaults in `~/.tAI/config.json`
 - **Platform independent** – compiles and runs on Linux, macOS, and Windows (via CMake + libcurl + nlohmann_json)
 - **Privacy‑respecting** – direct API calls, no anonymous proxies
@@ -132,20 +132,27 @@ cmake --build build --config Release
 
 ## 📦 Install
 
-### Linux/macOS (Standalone Script)
+### Linux/macOS (One-Command Install)
 
-You can build and install system-wide in one go using the standalone setup script:
+You can install `tAI` without manually cloning the repository using this single command:
+
 ```bash
-sudo bash setup.sh
+curl -sSL https://raw.githubusercontent.com/gautamjangid/tAI/main/tAI_Root/setup.sh | sudo bash -s -- -i
 ```
 
-*(Alternatively, you can manually run `sudo bash scripts/install.sh` after building the project)*
+This script will automatically clone the latest version into a temporary directory, build it, and install it system-wide.
+
+*(Alternatively, you can manually clone the repo, `cd tAI_Root`, and run `sudo bash setup.sh -i`)*
 
 ### Uninstall
 
+You can easily uninstall `tAI` by passing the `-u` flag to the setup script:
+
 ```bash
-sudo bash scripts/uninstall.sh  # removes /usr/local/bin/tAI and the man page
+curl -sSL https://raw.githubusercontent.com/gautamjangid/tAI/main/tAI_Root/setup.sh | sudo bash -s -- -u
 ```
+
+*(Or locally: `sudo bash setup.sh -u`)*
 
 ### Windows (vcpkg)
 
