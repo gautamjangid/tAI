@@ -1,5 +1,10 @@
 # tAI – Terminal AI Assistant
 
+[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/gautamjangid/tAI)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20macOS%20%7C%20Windows-lightgrey.svg)]()
+[![Language](https://img.shields.io/badge/language-C%2B%2B17-orange.svg)]()
+
 **tAI** is a lightweight, cross-platform CLI AI assistant written in C++.
 It works entirely in the terminal, supports multiple free or free‑tier backends, and runs well even on legacy hardware.
 
@@ -16,9 +21,13 @@ It works entirely in the terminal, supports multiple free or free‑tier backend
   - `-c` – code generation mode (no explanations)
   - `-s "system"` – set a custom system prompt
   - `-d "engine"` / `--default "engine"` – easily set the default engine in your config file
-- **History saving** – automatically saves queries and responses as stylish `.html` files in `~/.tAI/history/YYYY-MM-DD/HH.html` (day-wise folders with hourly appends).
+  - `--version` – print the current tAI version and exit
+- **Typing effect** – responses print character-by-character at a natural reading pace (reduces perceived latency, easier on the eyes)
+- **Error logging** – every runtime error is written to a timestamped file in `~/.tAI/logs/error-<YYYYMMDDHHmmss>.log` for easy debugging
+- **History saving** – automatically saves queries and responses as stylish `.html` files in `~/.tAI/history/YYYY-MM-DD/HH.html` (day-wise folders with hourly appends)
 - **Config file** – save API keys, templates, and defaults in `~/.tAI/config.json`
-- **Platform independent** – compiles and runs on Linux, macOS, and Windows (via CMake + libcurl + nlohmann_json)
+- **Versioned** – current release is `v1.0.0` (defined in `Config.h` as `TAI_VERSION`)
+- **Platform independent** – compiles and runs on Linux, macOS, and Windows (via CMake + libcurl)
 - **Privacy‑respecting** – direct API calls, no anonymous proxies
 
 ## 🚀 Quick Start
@@ -46,6 +55,9 @@ tAI -c "Write a Python function to sort a list"
 
 # Custom system prompt
 tAI -s "You are a Linux expert" "How do I install Docker?"
+
+# Print version
+tAI --version
 ```
 
 ## ⚙️ Configuration
@@ -90,16 +102,52 @@ Edit it to set your preferences:
 }
 ```
 
-- `default_engine`: Engine used when `-m` is not supplied (default: `ollama`). You can easily change this from the CLI via `tAI -d <engine>`.
-- `template`: Optional string to wrap user queries for that specific engine. E.g., setting `"template": "Summarize this: {query}"` will automatically insert the user's prompt wherever `{query}` is placed!
+- `default_engine`: Engine used when `-m` is not supplied (default: `ollama`). Easily change from CLI via `tAI -d <engine>`.
+- `template`: Optional string to wrap user queries for a specific engine. E.g., `"template": "Summarize this: {query}"` will automatically insert the user's prompt wherever `{query}` appears.
 - Each engine section contains its endpoint, optional API key, and an `enabled` flag.
 - Fill in the appropriate `api_key` for any cloud engine you wish to use.
 
 You can also override the config path with `--config /path/to/config.json`.
 
+## 🖨️ Typing Effect
+
+tAI prints AI responses character-by-character at approximately **18 ms per character** (with shorter pauses on spaces and newlines for a natural reading pace). This:
+- Makes long responses easier to follow line-by-line
+- Reduces perceived wait time (output starts immediately)
+- Helps manage token consumption in time-sensitive sessions
+
+## 📋 Error Logging
+
+Every error tAI encounters is automatically saved to a dedicated log file:
+
+```
+~/.tAI/logs/error-<YYYYMMDDHHmmss>.log
+```
+
+Example path: `~/.tAI/logs/error-20260428224000.log`
+
+Each log file contains:
+```
+=== tAI Error Log ===
+Timestamp : 2026-04-28 22:40:00
+Context   : API call – engine: grok
+Message   : curl error: Could not resolve host: api.x.ai
+=====================
+```
+
+Errors are logged for:
+- Invalid / missing CLI arguments
+- Unknown engine names
+- Missing API keys
+- API client creation failures
+- Network / API call failures
+- History file write failures
+
+> **Tip:** If tAI exits with an error, check `~/.tAI/logs/` for the full details.
+
 ## 🛠️ Build from Source
 
-Requirements: CMake ≥ 3.14, C++17 compiler, libcurl (with headers). `nlohmann/json` is fetched automatically via CMake.
+Requirements: CMake ≥ 3.14, C++17 compiler, libcurl (with headers). `nlohmann/json` is fetched automatically via CMake.
 
 ### Linux / macOS
 
@@ -146,8 +194,6 @@ This script will automatically clone the latest version into a temporary directo
 
 ### Uninstall
 
-You can easily uninstall `tAI` by passing the `-u` flag to the setup script:
-
 ```bash
 curl -sSL https://raw.githubusercontent.com/gautamjangid/tAI/main/tAI_Root/setup.sh | sudo bash -s -- -u
 ```
@@ -160,13 +206,13 @@ Manually copy `build/Release/tAI.exe` to a folder in your PATH, or run the provi
 
 ## 🧪 Supported Backends
 
-| Engine          | Flag            | Requires API Key? |
-|-----------------|-----------------|-------------------|
-| Ollama (local)  | `-m ollama`     | No                |
+| Engine          | Flag              | Requires API Key? |
+|-----------------|-------------------|-------------------|
+| Ollama (local)  | `-m ollama`       | No                |
 | Ollama Cloud    | `-m ollama_cloud` | Yes               |
-| Hugging Face    | `-m huggingface` | Yes (free tier)   |
-| xAI Grok        | `-m grok`        | Yes (free tier)   |
-| OpenRouter      | `-m openrouter`  | Yes (free tier)   |
+| Hugging Face    | `-m huggingface`  | Yes (free tier)   |
+| xAI Grok        | `-m grok`         | Yes (free tier)   |
+| OpenRouter      | `-m openrouter`   | Yes (free tier)   |
 
 ## 🔑 Getting API Keys
 
@@ -188,18 +234,22 @@ Manually copy `build/Release/tAI.exe` to a folder in your PATH, or run the provi
 ```
 tAI_Root/
 ├── CMakeLists.txt
-├── README.md
-├── scripts/         (install/uninstall helpers)
-├── include/tAI/     (public headers)
-│   ├── Config.h
+├── setup.sh                 (install -i / uninstall -u)
+├── scripts/
+│   ├── install.sh
+│   ├── uninstall.sh
+│   ├── windows_install.bat
+│   └── windows_uninstall.bat
+├── include/tAI/             (public headers)
+│   ├── Config.h             ← TAI_VERSION defined here
 │   ├── IApiClient.h
 │   ├── OllamaClient.h
 │   ├── OllamaCloudClient.h
 │   ├── HuggingfaceClient.h
 │   ├── GrokClient.h
 │   ├── OpenRouterClient.h
-│   └── Utils.h
-├── src/             (implementation files)
+│   └── Utils.h              ← logError(), typingPrint() declared here
+├── src/                     (implementation files)
 │   ├── main.cpp
 │   ├── Config.cpp
 │   ├── OllamaClient.cpp
@@ -207,8 +257,20 @@ tAI_Root/
 │   ├── HuggingfaceClient.cpp
 │   ├── GrokClient.cpp
 │   ├── OpenRouterClient.cpp
-│   └── Utils.cpp
-└── docs/            (design notes)
+│   └── Utils.cpp            ← logError(), typingPrint() implemented here
+└── docs/                    (design notes & screenshots)
+```
+
+## 📁 Runtime Data Layout
+
+```
+~/.tAI/
+├── config.json              ← User configuration
+├── history/
+│   └── YYYY-MM-DD/
+│       └── HH.html          ← Hourly HTML chat logs
+└── logs/
+    └── error-<timestamp>.log ← Per-error log files
 ```
 
 ## 🤝 Contributing
@@ -224,3 +286,14 @@ Pull requests are welcome. If you add a new backend, please:
 ## 📄 License
 
 This project is open-source under the MIT License.
+
+---
+
+## 📝 Changelog
+
+### v1.0.0 (2026-04-28)
+- 🎉 Initial versioned release
+- ✨ **Typing effect** – responses now print character-by-character at a natural pace
+- 🪵 **Error logging** – all errors saved to `~/.tAI/logs/error-<timestamp>.log`
+- 🏷️ **Version tracking** – `TAI_VERSION` macro in `Config.h`, `--version` CLI flag
+- 📜 History entries now include engine name and tAI version

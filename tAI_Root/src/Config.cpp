@@ -13,7 +13,8 @@
 
 // Constructor - Initialize with defaults
 Config::Config() 
-    : default_engine("ollama")
+    : default_engine("ollama"),
+      version(TAI_VERSION)
 {
     // All nested structs initialize with their defaults in header
 }
