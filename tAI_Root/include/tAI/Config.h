@@ -1,5 +1,9 @@
 #pragma once
 
+// ─── tAI Version ─────────────────────────────────────────────────────────────
+#define TAI_VERSION "1.0.0"
+// ─────────────────────────────────────────────────────────────────────────────
+
 #include <string>
 #include <map>
 
@@ -164,6 +168,7 @@ public:
 
     // Main settings
     std::string default_engine;  ///< Default AI engine (ollama, huggingface, ollama_cloud, grok, openrouter)
+    std::string version;         ///< Application version string (read-only, set from TAI_VERSION)
 
     // Engine-specific configurations
     OllamaEngineConfig ollama;              ///< Local Ollama (free, self-hosted)
