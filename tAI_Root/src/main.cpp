@@ -6,7 +6,9 @@
 #include <chrono>
 #include <iomanip>
 #include <sstream>
+#include <cstdlib>
 #include "tAI/Config.h"
+#include "tAI/DuckDuckGoClient.h"
 #include "tAI/OllamaClient.h"
 #include "tAI/OllamaCloudClient.h"
 #include "tAI/HuggingfaceClient.h"
@@ -14,20 +16,84 @@
 #include "tAI/OpenRouterClient.h"
 #include "tAI/Utils.h"
 
+// ─── openConfigInEditor ───────────────────────────────────────────────────────
+static void openConfigInEditor(const std::string& path) {
+    std::cout << "Opening config: " << path << std::endl;
+
+#ifdef _WIN32
+    std::string cmd = "notepad \"" + path + "\"";
+#else
+    // Try $VISUAL, then $EDITOR, then xdg-open, then nano, then vi
+    const char* editor = getenv("VISUAL");
+    if (!editor || editor[0] == '\0') editor = getenv("EDITOR");
+    std::string cmd;
+    if (editor && editor[0] != '\0') {
+        cmd = std::string(editor) + " \"" + path + "\"";
+    } else {
+        // Try xdg-open first (opens in user's preferred app)
+        cmd = "xdg-open \"" + path + "\" 2>/dev/null || "
+              "nano \"" + path + "\" 2>/dev/null || "
+              "vi \"" + path + "\"";
+    }
+#endif
+
+    int ret = system(cmd.c_str());
+    (void)ret; // Return value intentionally unused for editor launch
+}
+
+// ─── stripShellMarkdown ───────────────────────────────────────────────────────
+// Remove leading/trailing whitespace and backtick code fences from shell output
+static std::string stripShellMarkdown(const std::string& s) {
+    std::string result = s;
+
+    // Trim leading whitespace
+    size_t start = result.find_first_not_of(" \t\n\r");
+    if (start == std::string::npos) return "";
+    result = result.substr(start);
+
+    // Trim trailing whitespace
+    size_t end = result.find_last_not_of(" \t\n\r");
+    if (end != std::string::npos)
+        result = result.substr(0, end + 1);
+
+    // Strip ```bash / ```sh / ``` fences
+    if (result.rfind("```", 0) == 0) {
+        size_t first_newline = result.find('\n');
+        if (first_newline != std::string::npos)
+            result = result.substr(first_newline + 1);
+        // Strip trailing ```
+        if (result.size() >= 3 && result.substr(result.size() - 3) == "```")
+            result = result.substr(0, result.size() - 3);
+        // Re-trim
+        start = result.find_first_not_of(" \t\n\r");
+        if (start == std::string::npos) return "";
+        result = result.substr(start);
+        end = result.find_last_not_of(" \t\n\r");
+        if (end != std::string::npos)
+            result = result.substr(0, end + 1);
+    }
+
+    return result;
+}
+
 // ─── printUsage ───────────────────────────────────────────────────────────────
 void printUsage() {
     std::cout << "tAI v" << TAI_VERSION << " – Terminal AI Assistant\n\n"
               << "Usage: tAI [options] \"prompt\"\n\n"
               << "Options:\n"
-              << "  -c                  Code mode (no explanations)\n"
-              << "  -d, --default       Set the default engine in config and exit\n"
-              << "  -s <system>         Custom system prompt\n"
-              << "  -m <engine>         AI engine (see Supported Engines below)\n"
-              << "  --api-key <key>     API key for the selected engine (overrides config)\n"
-              << "  --config <path>     Config file path\n"
-              << "  --version           Show version and exit\n"
-              << "  -h, --help          Show this help message\n\n"
+              << "  -c                    Code mode (no explanations)\n"
+              << "  -s                    Shell mode: AI generates a command, optionally executes it\n"
+              << "  --system <prompt>     Custom system prompt\n"
+              << "  -f <file>             File mode: include file content as context\n"
+              << "  -d, --default         Set the default engine in config and exit\n"
+              << "  -m <engine>           AI engine (see Supported Engines below)\n"
+              << "  --api-key <key>       API key for the selected engine (overrides config)\n"
+              << "  --config              Open config file in default text editor\n"
+              << "  --config <path>       Use a custom config file path\n"
+              << "  --version             Show version and exit\n"
+              << "  -h, --help            Show this help message\n\n"
               << "Supported Engines:\n"
+              << "  duckduckgo          DuckDuckGo Instant Answer (no API key, default)\n"
               << "  ollama              Local Ollama models on localhost:11434 (no API key)\n"
               << "  ollama_cloud        Ollama Cloud API (requires API key)\n"
               << "  huggingface         Hugging Face Inference API (requires API key)\n"
@@ -36,6 +102,10 @@ void printUsage() {
               << "Examples:\n"
               << "  tAI \"What is machine learning?\"\n"
               << "  tAI -c \"Write a Python function to sort a list\"\n"
+              << "  tAI -s \"list all .cpp files recursively\"\n"
+              << "  tAI -f README.md \"Summarize this file\"\n"
+              << "  tAI --system \"You are a Linux expert\" \"How do I install Docker?\"\n"
+              << "  tAI --config\n"
               << "  tAI -m ollama \"What is 2+2?\"\n"
               << "  tAI -m ollama_cloud --api-key ollama-xxxx \"Explain quantum computing\"\n"
               << "  tAI -m huggingface --api-key hf_xxxx \"Tell me about AI\"\n"
@@ -56,10 +126,13 @@ int main(int argc, char* argv[]) {
     config.load(configPath);
 
     // Parse command line arguments
-    std::string engine      = config.default_engine;
+    std::string engine        = config.default_engine;
     std::string api_key;
     std::string system_prompt;
-    bool        code_mode   = false;
+    std::string file_path;
+    bool        code_mode     = false;
+    bool        shell_mode    = false;
+    bool        open_config   = false;
     std::string user_query;
 
     for (int i = 1; i < argc; ++i) {
@@ -90,8 +163,15 @@ int main(int argc, char* argv[]) {
         } else if (arg == "-c") {
             code_mode = true;
 
-        } else if (arg == "-s" && i + 1 < argc) {
+        } else if (arg == "-s") {
+            // Shell mode — no argument consumed
+            shell_mode = true;
+
+        } else if (arg == "--system" && i + 1 < argc) {
             system_prompt = argv[++i];
+
+        } else if (arg == "-f" && i + 1 < argc) {
+            file_path = argv[++i];
 
         } else if (arg == "-m" && i + 1 < argc) {
             engine = argv[++i];
@@ -99,9 +179,15 @@ int main(int argc, char* argv[]) {
         } else if (arg == "--api-key" && i + 1 < argc) {
             api_key = argv[++i];
 
-        } else if (arg == "--config" && i + 1 < argc) {
-            configPath = argv[++i];
-            config.load(configPath);
+        } else if (arg == "--config") {
+            // No next arg OR next arg starts with '-' → open config in editor
+            if (i + 1 >= argc || argv[i + 1][0] == '-') {
+                open_config = true;
+            } else {
+                // Next arg is a custom path
+                configPath = argv[++i];
+                config.load(configPath);
+            }
 
         } else if (arg[0] != '-') {
             user_query = arg;
@@ -115,6 +201,18 @@ int main(int argc, char* argv[]) {
         }
     }
 
+    // ── Handle --config (open in editor) ──────────────────────────────────────
+    if (open_config) {
+        // Ensure config file exists before trying to open it
+        std::ifstream check(configPath);
+        if (!check.is_open()) {
+            config.load(configPath); // creates default if missing
+        }
+        openConfigInEditor(configPath);
+        return 0;
+    }
+
+    // ── Validate query ────────────────────────────────────────────────────────
     if (user_query.empty()) {
         std::string err = "No prompt provided.";
         std::cerr << "Error: " << err << "\n";
@@ -123,23 +221,50 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    // Validate engine choice
-    if (engine != "ollama"       && engine != "ollama_cloud" &&
-        engine != "huggingface"  && engine != "grok"         &&
+    // ── Validate engine ───────────────────────────────────────────────────────
+    if (engine != "duckduckgo" && engine != "ollama"       &&
+        engine != "ollama_cloud"                           &&
+        engine != "huggingface"  && engine != "grok"       &&
         engine != "openrouter") {
         std::string err = "Unknown engine '" + engine + "'. "
-                          "Valid engines: ollama, ollama_cloud, huggingface, grok, openrouter";
+                          "Valid: duckduckgo, ollama, ollama_cloud, huggingface, grok, openrouter";
         std::cerr << "Error: " << err << "\n";
         logError("Engine validation", err);
         return 1;
     }
 
-    if (code_mode && system_prompt.empty()) {
+    // ── Apply modes ───────────────────────────────────────────────────────────
+    if (shell_mode) {
+        system_prompt = "You are a shell command expert. "
+                        "Respond with ONLY the raw shell command that accomplishes the user's "
+                        "request. No explanations, no markdown, no backtick fences — "
+                        "just the command itself on a single line.";
+    } else if (code_mode && system_prompt.empty()) {
         system_prompt = "You are an expert programmer. "
                         "Provide only the code without any explanations or comments.";
     }
 
-    // Apply template if configured
+    // ── Handle -f (file mode) ─────────────────────────────────────────────────
+    if (!file_path.empty()) {
+        std::ifstream file(file_path);
+        if (!file.is_open()) {
+            std::string err = "Cannot open file: " + file_path;
+            std::cerr << "Error: " << err << "\n";
+            logError("File mode", err);
+            return 1;
+        }
+        std::string file_content((std::istreambuf_iterator<char>(file)),
+                                  std::istreambuf_iterator<char>());
+        file.close();
+
+        // Build context-enhanced query
+        std::string fname = std::filesystem::path(file_path).filename().string();
+        user_query = "[File: " + fname + "]\n"
+                   + file_content + "\n\n"
+                   + "User query: " + user_query;
+    }
+
+    // ── Apply template ────────────────────────────────────────────────────────
     std::string template_format;
     if      (engine == "ollama")       template_format = config.ollama.template_format;
     else if (engine == "ollama_cloud") template_format = config.ollama_cloud.template_format;
@@ -158,7 +283,7 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    // Resolve API key
+    // ── Resolve API key ───────────────────────────────────────────────────────
     if (api_key.empty()) {
         if      (engine == "ollama_cloud") api_key = config.ollama_cloud.api_key;
         else if (engine == "huggingface")  api_key = config.huggingface.api_key;
@@ -166,9 +291,13 @@ int main(int argc, char* argv[]) {
         else if (engine == "openrouter")   api_key = config.openrouter.api_key;
     }
 
-    // Build client
+    // ── Build client ──────────────────────────────────────────────────────────
     IApiClient* client = nullptr;
-    if (engine == "ollama") {
+
+    if (engine == "duckduckgo") {
+        client = new DuckDuckGoClient(config.duckduckgo.api_endpoint);
+
+    } else if (engine == "ollama") {
         client = new OllamaClient();
 
     } else if (engine == "ollama_cloud") {
@@ -225,8 +354,27 @@ int main(int argc, char* argv[]) {
     try {
         std::string result = client->chat(user_query, system_prompt);
 
-        // Print with typing effect (avg pace: 18 ms/char)
-        typingPrint(result);
+        if (shell_mode) {
+            // ── Shell mode: show command, ask to execute ──────────────────────
+            std::string command = stripShellMarkdown(result);
+            std::cout << "\n  " << command << "\n\n";
+            std::cout << "Execute this command? [y/N]: " << std::flush;
+
+            std::string answer;
+            std::getline(std::cin, answer);
+            if (!answer.empty() && (answer[0] == 'y' || answer[0] == 'Y')) {
+                std::cout << "\n";
+                int ret = system(command.c_str());
+                if (ret != 0) {
+                    std::cout << "\n[Command exited with code " << ret << "]\n";
+                }
+            } else {
+                std::cout << "Command not executed.\n";
+            }
+        } else {
+            // Normal mode: typing effect
+            typingPrint(result);
+        }
 
         // ── Save history ──────────────────────────────────────────────────────
         try {

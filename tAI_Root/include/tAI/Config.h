@@ -1,7 +1,7 @@
 #pragma once
 
 // ─── tAI Version ─────────────────────────────────────────────────────────────
-#define TAI_VERSION "1.0.0"
+#define TAI_VERSION "1.1.0"
 // ─────────────────────────────────────────────────────────────────────────────
 
 #include <string>
@@ -16,7 +16,11 @@
  *
  * Configuration file format (JSON):
  * {
- *   "default_engine": "ollama",
+ *   "default_engine": "duckduckgo",
+ *   "duckduckgo": {
+ *     "api_endpoint": "https://api.duckduckgo.com",
+ *     "enabled": true
+ *   },
  *   "ollama": {
  *     "api_endpoint": "http://localhost:11434",
  *     "enabled": true
@@ -47,6 +51,15 @@
  */
 
 // Individual engine configuration structures
+
+struct DuckDuckGoEngineConfig {
+    std::string api_endpoint;
+    bool enabled;
+
+    DuckDuckGoEngineConfig()
+        : api_endpoint("https://api.duckduckgo.com"), enabled(true) {}
+};
+
 struct OllamaEngineConfig {
     std::string api_endpoint;
     std::string template_format;
@@ -124,7 +137,7 @@ public:
     /**
      * @brief Constructor
      * Initializes config with default values:
-     * - default_engine: "ollama" (local, free)
+     * - default_engine: "duckduckgo" (no API key, no local server needed)
      * - All engine configs initialized with defaults
      */
     Config();
@@ -167,10 +180,11 @@ public:
     void createDefaultConfig(const std::string& path) const;
 
     // Main settings
-    std::string default_engine;  ///< Default AI engine (ollama, huggingface, ollama_cloud, grok, openrouter)
+    std::string default_engine;  ///< Default AI engine (duckduckgo, ollama, huggingface, ollama_cloud, grok, openrouter)
     std::string version;         ///< Application version string (read-only, set from TAI_VERSION)
 
     // Engine-specific configurations
+    DuckDuckGoEngineConfig duckduckgo;      ///< DuckDuckGo Instant Answer (free, no API key)
     OllamaEngineConfig ollama;              ///< Local Ollama (free, self-hosted)
     HuggingfaceEngineConfig huggingface;    ///< Hugging Face (free tier available)
     OllamaCloudEngineConfig ollama_cloud;   ///< Ollama Cloud

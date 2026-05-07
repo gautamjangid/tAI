@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.14)
 project(tAI
-    VERSION 1.0.0
+    VERSION 1.1.0
     DESCRIPTION "Terminal AI Assistant - CLI tool for multiple AI backends"
     HOMEPAGE_URL "https://github.com/example/tAI"
     LANGUAGES CXX
@@ -50,6 +50,7 @@ FetchContent_MakeAvailable(nlohmann_json)
 set(TAI_HEADERS
     include/tAI/Config.h
     include/tAI/IApiClient.h
+    include/tAI/DuckDuckGoClient.h
     include/tAI/OllamaClient.h
     include/tAI/OllamaCloudClient.h
     include/tAI/HuggingfaceClient.h
@@ -61,6 +62,7 @@ set(TAI_HEADERS
 set(TAI_SOURCES
     src/main.cpp
     src/Config.cpp
+    src/DuckDuckGoClient.cpp
     src/OllamaClient.cpp
     src/OllamaCloudClient.cpp
     src/HuggingfaceClient.cpp
@@ -149,6 +151,7 @@ message(STATUS "CURL: ${CURL_LIBRARIES}")
 message(STATUS "")
 
 message(STATUS "Supported Engines:")
+message(STATUS "  - DuckDuckGo (no API key, default)")
 message(STATUS "  - Ollama (local)")
 message(STATUS "  - Ollama Cloud")
 message(STATUS "  - Hugging Face")
