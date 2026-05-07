@@ -64,9 +64,9 @@ struct OllamaEngineConfig {
     std::string api_endpoint;
     std::string template_format;
     bool enabled;
-    
-    OllamaEngineConfig() 
-        : api_endpoint("http://localhost:11434"), template_format(""), enabled(true) {}
+
+    OllamaEngineConfig()
+        : api_endpoint("http://localhost:11434"), template_format(""), enabled(false) {}
 };
 
 struct HuggingfaceEngineConfig {
@@ -75,7 +75,7 @@ struct HuggingfaceEngineConfig {
     std::string model;
     std::string template_format;
     bool enabled;
-    
+
     HuggingfaceEngineConfig()
         : api_endpoint("https://api-inference.huggingface.co"),
           api_key(""),
@@ -89,7 +89,7 @@ struct OllamaCloudEngineConfig {
     std::string api_key;
     std::string template_format;
     bool enabled;
-    
+
     OllamaCloudEngineConfig()
         : api_endpoint("https://api.ollama.cloud"),
           api_key(""),
@@ -102,7 +102,7 @@ struct GrokEngineConfig {
     std::string api_key;
     std::string template_format;
     bool enabled;
-    
+
     GrokEngineConfig()
         : api_endpoint("https://api.x.ai/v1"),
           api_key(""),
@@ -116,7 +116,7 @@ struct OpenRouterEngineConfig {
     std::string referer;
     std::string template_format;
     bool enabled;
-    
+
     OpenRouterEngineConfig()
         : api_endpoint("https://openrouter.ai/api/v1"),
           api_key(""),
@@ -199,7 +199,7 @@ private:
      * @param defaultValue Default value if key not found
      * @return Parsed value or default
      */
-    std::string parseJsonString(const std::string& json, 
+    std::string parseJsonString(const std::string& json,
                                const std::string& key,
                                const std::string& defaultValue = "");
 

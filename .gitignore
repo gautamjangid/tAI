@@ -2,4 +2,5 @@
 docs/
 backup/
 tAI_Root/build/
-
+tAI_Root/deps/
+vcpkg
