@@ -12,8 +12,8 @@
 #endif
 
 // Constructor - Initialize with defaults
-Config::Config() 
-    : default_engine("ollama"),
+Config::Config()
+    : default_engine("duckduckgo"),
       version(TAI_VERSION)
 {
     // All nested structs initialize with their defaults in header
@@ -122,7 +122,11 @@ void Config::ensureDirectoryExists(const std::string& path) const {
 std::string Config::getDefaultConfigJson() const {
     std::ostringstream ss;
     ss << "{\n";
-    ss << "  \"default_engine\": \"ollama\",\n";
+    ss << "  \"default_engine\": \"duckduckgo\",\n";
+    ss << "  \"duckduckgo\": {\n";
+    ss << "    \"api_endpoint\": \"https://api.duckduckgo.com\",\n";
+    ss << "    \"enabled\": true\n";
+    ss << "  },\n";
     ss << "  \"ollama\": {\n";
     ss << "    \"api_endpoint\": \"http://localhost:11434\",\n";
     ss << "    \"template\": \"\",\n";
@@ -167,15 +171,27 @@ void Config::load(const std::string& path) {
         createDefaultConfig(path);
         return;
     }
-    
+
     std::string content((std::istreambuf_iterator<char>(file)),
                        std::istreambuf_iterator<char>());
     file.close();
 
     // Parse default engine
-    std::string engine = parseJsonString(content, "default_engine", "ollama");
+    std::string engine = parseJsonString(content, "default_engine", "duckduckgo");
     if (!engine.empty()) {
         default_engine = engine;
+    }
+
+    // === Parse DuckDuckGo ===
+    size_t ddg_pos = content.find("\"duckduckgo\":");
+    if (ddg_pos != std::string::npos) {
+        size_t ddg_end = content.find("}", ddg_pos);
+        if (ddg_end != std::string::npos) {
+            std::string section = content.substr(ddg_pos, ddg_end - ddg_pos + 1);
+            std::string endpoint = parseJsonString(section, "api_endpoint", "https://api.duckduckgo.com");
+            if (!endpoint.empty()) duckduckgo.api_endpoint = endpoint;
+            duckduckgo.enabled = parseJsonBool(section, "enabled", true);
+        }
     }
 
     // === Parse Ollama (Local) ===
@@ -312,16 +328,22 @@ void Config::save(const std::string& path) const {
         std::string dir = path.substr(0, lastSlash);
         ensureDirectoryExists(dir);
     }
-    
+
     std::ofstream file(path);
     if (!file.is_open()) {
         std::cerr << "Error: Could not open config file for writing: " << path << std::endl;
         return;
     }
-    
+
     file << "{\n";
     file << "  \"default_engine\": \"" << jsonEscape(default_engine) << "\",\n";
-    
+
+    // === Save DuckDuckGo ===
+    file << "  \"duckduckgo\": {\n";
+    file << "    \"api_endpoint\": \"" << jsonEscape(duckduckgo.api_endpoint) << "\",\n";
+    file << "    \"enabled\": " << (duckduckgo.enabled ? "true" : "false") << "\n";
+    file << "  },\n";
+
     // === Save Ollama ===
     file << "  \"ollama\": {\n";
     file << "    \"api_endpoint\": \"" << jsonEscape(ollama.api_endpoint) << "\",\n";
