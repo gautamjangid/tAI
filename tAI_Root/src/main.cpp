@@ -21,18 +21,24 @@ static void openConfigInEditor(const std::string& path) {
     std::cout << "Opening config: " << path << std::endl;
 
 #ifdef _WIN32
+    // On Windows, use notepad (guaranteed to be available)
     std::string cmd = "notepad \"" + path + "\"";
+#elif defined(__APPLE__)
+    // On macOS, use 'open -t' to open with default text editor
+    std::string cmd = "open -t \"" + path + "\"";
 #else
-    // Try $VISUAL, then $EDITOR, then xdg-open, then nano, then vi
+    // On Linux/Unix: Try common text editors in order of preference
+    // Prioritize text editors over xdg-open to avoid browser opening for .json files
     const char* editor = getenv("VISUAL");
     if (!editor || editor[0] == '\0') editor = getenv("EDITOR");
     std::string cmd;
     if (editor && editor[0] != '\0') {
+        // Use user's preferred editor from environment variables
         cmd = std::string(editor) + " \"" + path + "\"";
     } else {
-        // Try xdg-open first (opens in user's preferred app)
-        cmd = "xdg-open \"" + path + "\" 2>/dev/null || "
-              "nano \"" + path + "\" 2>/dev/null || "
+        // Try common text editors first, fall back to vi if none available
+        cmd = "nano \"" + path + "\" 2>/dev/null || "
+              "vim \"" + path + "\" 2>/dev/null || "
               "vi \"" + path + "\"";
     }
 #endif
