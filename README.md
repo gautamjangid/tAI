@@ -102,14 +102,14 @@ Edit it manually or run `tAI --config` to open it in your default editor:
     "enabled": false
   },
   "huggingface": {
-    "api_endpoint": "https://api-inference.huggingface.co",
+    "api_endpoint": "https://router.huggingface.co/v1/chat/completions",
     "api_key": "",
     "model": "meta-llama/Llama-2-7b-chat-hf",
     "template": "",
     "enabled": false
   },
   "grok": {
-    "api_endpoint": "https://api.x.ai/v1",
+    "api_endpoint": "https://api.groq.com/openai/v1/chat/completions",
     "api_key": "",
     "template": "",
     "enabled": false
@@ -419,6 +419,9 @@ This project is open-source under the MIT License.
 ---
 
 ## 📝 Changelog
+
+### v1.1.1 (2026-05-08)
+- ⚙️ **API endpoints corrections** - API endpoints updated correctly in config file
 
 ### v1.1.0 (2026-05-07)
 - 🔍 **DuckDuckGo engine** – new default engine using the Instant Answer API (no API key required)
