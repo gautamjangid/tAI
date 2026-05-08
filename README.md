@@ -1,6 +1,6 @@
 # tAI – Terminal AI Assistant
 
-[![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)](https://github.com/gautamjangid/tAI)
+[![Version](https://img.shields.io/badge/version-1.1.1-blue.svg)](https://github.com/gautamjangid/tAI)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20macOS%20%7C%20Windows-lightgrey.svg)](https://github.com/gautamjangid/tAI)
 [![Language](https://img.shields.io/badge/language-C%2B%2B17-orange.svg)](https://github.com/gautamjangid/tAI)
@@ -32,7 +32,7 @@ It works entirely in the terminal, supports multiple free or free‑tier backend
 - **Error logging** – every runtime error is written to `~/.tAI/logs/error-<YYYYMMDDHHmmss>.log`
 - **History saving** – saves queries and responses as `.html` files in `~/.tAI/history/YYYY-MM-DD/HH.html`
 - **Config file** – save API keys, templates, and defaults in `~/.tAI/config.json`
-- **Versioned** – current release is `v1.1.0` (defined in `Config.h` as `TAI_VERSION`)
+- **Versioned** – current release is `v1.1.1` (defined in `Config.h` as `TAI_VERSION`)
 - **Platform independent** – compiles and runs on Linux, macOS, and Windows (via CMake + libcurl)
 - **Privacy‑respecting** – direct API calls, no anonymous proxies
 

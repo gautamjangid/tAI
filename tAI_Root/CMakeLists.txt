@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.14)
 project(tAI
-    VERSION 1.1.0
+    VERSION 1.1.1
     DESCRIPTION "Terminal AI Assistant - CLI tool for multiple AI backends"
-    HOMEPAGE_URL "https://github.com/example/tAI"
+    HOMEPAGE_URL "https://github.com/gautamjangid/tAI"
     LANGUAGES CXX
 )
 
