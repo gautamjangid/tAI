@@ -1,7 +1,7 @@
 #pragma once
 
 // ─── tAI Version ─────────────────────────────────────────────────────────────
-#define TAI_VERSION "1.1.0"
+#define TAI_VERSION "1.1.1"
 // ─────────────────────────────────────────────────────────────────────────────
 
 #include <string>
@@ -37,7 +37,7 @@
  *     "enabled": false
  *   },
  *   "grok": {
- *     "api_endpoint": "https://api.x.ai/v1",
+ *     "api_endpoint": "https://api.groq.com/openai/v1/chat/completions",
  *     "api_key": "",
  *     "enabled": false
  *   },
@@ -104,7 +104,7 @@ struct GrokEngineConfig {
     bool enabled;
 
     GrokEngineConfig()
-        : api_endpoint("https://api.x.ai/v1"),
+        : api_endpoint("https://api.groq.com/openai/v1/chat/completions"),
           api_key(""),
           template_format(""),
           enabled(false) {}
