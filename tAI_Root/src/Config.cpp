@@ -20,18 +20,18 @@ Config::Config()
 }
 
 // Parse string value from JSON section
-std::string Config::parseJsonString(const std::string& json, 
+std::string Config::parseJsonString(const std::string& json,
                                    const std::string& key,
                                    const std::string& defaultValue) {
     std::string search = "\"" + key + "\":";
     size_t pos = json.find(search);
     if (pos == std::string::npos) return defaultValue;
-    
+
     // Find opening quote
     pos = json.find("\"", pos + search.length());
     if (pos == std::string::npos) return defaultValue;
     pos++; // skip opening quote
-    
+
     // Find closing quote (handle escaped quotes)
     size_t end = pos;
     while (end < json.length()) {
@@ -40,9 +40,9 @@ std::string Config::parseJsonString(const std::string& json,
         }
         end++;
     }
-    
+
     if (end == json.length()) return defaultValue;
-    
+
     return json.substr(pos, end - pos);
 }
 
@@ -53,19 +53,19 @@ bool Config::parseJsonBool(const std::string& json,
     std::string search = "\"" + key + "\":";
     size_t pos = json.find(search);
     if (pos == std::string::npos) return defaultValue;
-    
+
     pos += search.length();
-    
+
     // Skip whitespace
     while (pos < json.length() && (json[pos] == ' ' || json[pos] == '\t' || json[pos] == '\n')) {
         pos++;
     }
-    
+
     if (pos >= json.length()) return defaultValue;
-    
+
     if (json.substr(pos, 4) == "true") return true;
     if (json.substr(pos, 5) == "false") return false;
-    
+
     return defaultValue;
 }
 
@@ -133,10 +133,10 @@ std::string Config::getDefaultConfigJson() const {
     ss << "    \"enabled\": true\n";
     ss << "  },\n";
     ss << "  \"huggingface\": {\n";
-    ss << "    \"api_endpoint\": \"https://api-inference.huggingface.co\",\n";
+    ss << "    \"api_endpoint\": \"https://router.huggingface.co/v1/chat/completions\",\n";
     ss << "    \"api_key\": \"\",\n";
-    ss << "    \"model\": \"meta-llama/Llama-2-7b-chat-hf\",\n";
-    ss << "    \"template\": \"\",\n";
+    ss << "    \"model\": \"openai/gpt-oss-120b:groq\",\n";
+    ss << "    \"template\": \"answer in one line sentence if question is not related to code\",\n";
     ss << "    \"enabled\": false\n";
     ss << "  },\n";
     ss << "  \"ollama_cloud\": {\n";
@@ -146,7 +146,7 @@ std::string Config::getDefaultConfigJson() const {
     ss << "    \"enabled\": false\n";
     ss << "  },\n";
     ss << "  \"grok\": {\n";
-    ss << "    \"api_endpoint\": \"https://api.x.ai/v1\",\n";
+    ss << "    \"api_endpoint\": \"https://api.groq.com/openai/v1/chat/completions\",\n";
     ss << "    \"api_key\": \"\",\n";
     ss << "    \"template\": \"\",\n";
     ss << "    \"enabled\": false\n";
@@ -200,15 +200,15 @@ void Config::load(const std::string& path) {
         size_t ollama_end = content.find("}", ollama_pos);
         if (ollama_end != std::string::npos) {
             std::string section = content.substr(ollama_pos, ollama_end - ollama_pos + 1);
-            
+
             std::string endpoint = parseJsonString(section, "api_endpoint", "http://localhost:11434");
             if (!endpoint.empty()) {
                 ollama.api_endpoint = endpoint;
             }
-            
+
             std::string tpl = parseJsonString(section, "template", "");
             if (!tpl.empty()) ollama.template_format = tpl;
-            
+
             ollama.enabled = parseJsonBool(section, "enabled", true);
         }
     }
@@ -219,25 +219,25 @@ void Config::load(const std::string& path) {
         size_t hf_end = content.find("}", hf_pos);
         if (hf_end != std::string::npos) {
             std::string section = content.substr(hf_pos, hf_end - hf_pos + 1);
-            
-            std::string endpoint = parseJsonString(section, "api_endpoint", "https://api-inference.huggingface.co");
+
+            std::string endpoint = parseJsonString(section, "api_endpoint", "https://router.huggingface.co/v1/chat/completions");
             if (!endpoint.empty()) {
                 huggingface.api_endpoint = endpoint;
             }
-            
+
             std::string key = parseJsonString(section, "api_key", "");
             if (!key.empty()) {
                 huggingface.api_key = key;
             }
-            
-            std::string model = parseJsonString(section, "model", "meta-llama/Llama-2-7b-chat-hf");
+
+            std::string model = parseJsonString(section, "model", "openai/gpt-oss-120b:groq");
             if (!model.empty()) {
                 huggingface.model = model;
             }
-            
+
             std::string tpl = parseJsonString(section, "template", "");
             if (!tpl.empty()) huggingface.template_format = tpl;
-            
+
             huggingface.enabled = parseJsonBool(section, "enabled", false);
         }
     }
@@ -248,20 +248,20 @@ void Config::load(const std::string& path) {
         size_t oc_end = content.find("}", oc_pos);
         if (oc_end != std::string::npos) {
             std::string section = content.substr(oc_pos, oc_end - oc_pos + 1);
-            
+
             std::string endpoint = parseJsonString(section, "api_endpoint", "https://api.ollama.cloud");
             if (!endpoint.empty()) {
                 ollama_cloud.api_endpoint = endpoint;
             }
-            
+
             std::string key = parseJsonString(section, "api_key", "");
             if (!key.empty()) {
                 ollama_cloud.api_key = key;
             }
-            
+
             std::string tpl = parseJsonString(section, "template", "");
             if (!tpl.empty()) ollama_cloud.template_format = tpl;
-            
+
             ollama_cloud.enabled = parseJsonBool(section, "enabled", false);
         }
     }
@@ -272,20 +272,20 @@ void Config::load(const std::string& path) {
         size_t grok_end = content.find("}", grok_pos);
         if (grok_end != std::string::npos) {
             std::string section = content.substr(grok_pos, grok_end - grok_pos + 1);
-            
-            std::string endpoint = parseJsonString(section, "api_endpoint", "https://api.x.ai/v1");
+
+            std::string endpoint = parseJsonString(section, "api_endpoint", "https://api.groq.com/openai/v1/chat/completions");
             if (!endpoint.empty()) {
                 grok.api_endpoint = endpoint;
             }
-            
+
             std::string key = parseJsonString(section, "api_key", "");
             if (!key.empty()) {
                 grok.api_key = key;
             }
-            
+
             std::string tpl = parseJsonString(section, "template", "");
             if (!tpl.empty()) grok.template_format = tpl;
-            
+
             grok.enabled = parseJsonBool(section, "enabled", false);
         }
     }
@@ -296,25 +296,25 @@ void Config::load(const std::string& path) {
         size_t or_end = content.find("}", or_pos);
         if (or_end != std::string::npos) {
             std::string section = content.substr(or_pos, or_end - or_pos + 1);
-            
+
             std::string endpoint = parseJsonString(section, "api_endpoint", "https://openrouter.ai/api/v1");
             if (!endpoint.empty()) {
                 openrouter.api_endpoint = endpoint;
             }
-            
+
             std::string key = parseJsonString(section, "api_key", "");
             if (!key.empty()) {
                 openrouter.api_key = key;
             }
-            
+
             std::string referer = parseJsonString(section, "referer", "");
             if (!referer.empty()) {
                 openrouter.referer = referer;
             }
-            
+
             std::string tpl = parseJsonString(section, "template", "");
             if (!tpl.empty()) openrouter.template_format = tpl;
-            
+
             openrouter.enabled = parseJsonBool(section, "enabled", false);
         }
     }
@@ -350,7 +350,7 @@ void Config::save(const std::string& path) const {
     file << "    \"template\": \"" << jsonEscape(ollama.template_format) << "\",\n";
     file << "    \"enabled\": " << (ollama.enabled ? "true" : "false") << "\n";
     file << "  },\n";
-    
+
     // === Save Hugging Face ===
     file << "  \"huggingface\": {\n";
     file << "    \"api_endpoint\": \"" << jsonEscape(huggingface.api_endpoint) << "\",\n";
@@ -359,7 +359,7 @@ void Config::save(const std::string& path) const {
     file << "    \"template\": \"" << jsonEscape(huggingface.template_format) << "\",\n";
     file << "    \"enabled\": " << (huggingface.enabled ? "true" : "false") << "\n";
     file << "  },\n";
-    
+
     // === Save Ollama Cloud ===
     file << "  \"ollama_cloud\": {\n";
     file << "    \"api_endpoint\": \"" << jsonEscape(ollama_cloud.api_endpoint) << "\",\n";
@@ -367,7 +367,7 @@ void Config::save(const std::string& path) const {
     file << "    \"template\": \"" << jsonEscape(ollama_cloud.template_format) << "\",\n";
     file << "    \"enabled\": " << (ollama_cloud.enabled ? "true" : "false") << "\n";
     file << "  },\n";
-    
+
     // === Save Grok ===
     file << "  \"grok\": {\n";
     file << "    \"api_endpoint\": \"" << jsonEscape(grok.api_endpoint) << "\",\n";
@@ -375,7 +375,7 @@ void Config::save(const std::string& path) const {
     file << "    \"template\": \"" << jsonEscape(grok.template_format) << "\",\n";
     file << "    \"enabled\": " << (grok.enabled ? "true" : "false") << "\n";
     file << "  },\n";
-    
+
     // === Save OpenRouter ===
     file << "  \"openrouter\": {\n";
     file << "    \"api_endpoint\": \"" << jsonEscape(openrouter.api_endpoint) << "\",\n";
@@ -385,7 +385,7 @@ void Config::save(const std::string& path) const {
     file << "    \"enabled\": " << (openrouter.enabled ? "true" : "false") << "\n";
     file << "  }\n";
     file << "}\n";
-    
+
     file.close();
 }
 
@@ -397,16 +397,16 @@ void Config::createDefaultConfig(const std::string& path) const {
         std::string dir = path.substr(0, lastSlash);
         ensureDirectoryExists(dir);
     }
-    
+
     std::ofstream file(path);
     if (!file.is_open()) {
         std::cerr << "Error: Could not create default config file at: " << path << std::endl;
         return;
     }
-    
+
     file << getDefaultConfigJson();
     file.close();
-    
+
     std::cout << "Created default config at: " << path << std::endl;
 }
 

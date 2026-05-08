@@ -26,9 +26,9 @@
  *     "enabled": true
  *   },
  *   "huggingface": {
- *     "api_endpoint": "https://api-inference.huggingface.co",
+ *     "api_endpoint": "https://router.huggingface.co/v1/chat/completions",
  *     "api_key": "",
- *     "model": "meta-llama/Llama-2-7b-chat-hf",
+ *     "model": "openai/gpt-oss-120b:groq",
  *     "enabled": false
  *   },
  *   "ollama_cloud": {
@@ -77,10 +77,10 @@ struct HuggingfaceEngineConfig {
     bool enabled;
 
     HuggingfaceEngineConfig()
-        : api_endpoint("https://api-inference.huggingface.co"),
+        : api_endpoint("https://router.huggingface.co/v1/chat/completions"),
           api_key(""),
-          model("meta-llama/Llama-2-7b-chat-hf"),
-          template_format(""),
+          model("openai/gpt-oss-120b:groq"),
+          template_format("answer in one line sentence if question is not related to code"),
           enabled(false) {}
 };
 
