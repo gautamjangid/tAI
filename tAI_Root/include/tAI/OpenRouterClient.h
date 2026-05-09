@@ -12,10 +12,12 @@ public:
      * @brief Construct an OpenRouter client.
      *
      * @param api_key   Your OpenRouter API key.
+     * @param model     The model to use (defaults to "auto").
      * @param endpoint  API endpoint URL (defaults to official OpenRouter endpoint).
      * @param referer   Optional referer for usage tracking.
      */
     OpenRouterClient(const std::string& api_key,
+                     const std::string& model = "auto",
                      const std::string& endpoint = "https://openrouter.ai/api/v1",
                      const std::string& referer = "");
 
@@ -32,6 +34,7 @@ public:
 
 private:
     std::string api_key_;
+    std::string model_;    ///< Model name (e.g., "auto").
     std::string endpoint_;
     std::string referer_;
 };

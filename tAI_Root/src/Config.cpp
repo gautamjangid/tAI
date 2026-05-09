@@ -148,6 +148,7 @@ std::string Config::getDefaultConfigJson() const {
     ss << "  \"grok\": {\n";
     ss << "    \"api_endpoint\": \"https://api.groq.com/openai/v1/chat/completions\",\n";
     ss << "    \"api_key\": \"\",\n";
+    ss << "    \"model\": \"grok-1\",\n";
     ss << "    \"template\": \"\",\n";
     ss << "    \"enabled\": false\n";
     ss << "  },\n";
@@ -155,6 +156,7 @@ std::string Config::getDefaultConfigJson() const {
     ss << "    \"api_endpoint\": \"https://openrouter.ai/api/v1\",\n";
     ss << "    \"api_key\": \"\",\n";
     ss << "    \"referer\": \"\",\n";
+    ss << "    \"model\": \"auto\",\n";
     ss << "    \"template\": \"\",\n";
     ss << "    \"enabled\": false\n";
     ss << "  }\n";
@@ -283,6 +285,11 @@ void Config::load(const std::string& path) {
                 grok.api_key = key;
             }
 
+            std::string model = parseJsonString(section, "model", "groq/compound-mini");
+            if (!model.empty()) {
+                grok.model = model;
+            }
+
             std::string tpl = parseJsonString(section, "template", "");
             if (!tpl.empty()) grok.template_format = tpl;
 
@@ -310,6 +317,11 @@ void Config::load(const std::string& path) {
             std::string referer = parseJsonString(section, "referer", "");
             if (!referer.empty()) {
                 openrouter.referer = referer;
+            }
+
+            std::string model = parseJsonString(section, "model", "auto");
+            if (!model.empty()) {
+                openrouter.model = model;
             }
 
             std::string tpl = parseJsonString(section, "template", "");
@@ -372,6 +384,7 @@ void Config::save(const std::string& path) const {
     file << "  \"grok\": {\n";
     file << "    \"api_endpoint\": \"" << jsonEscape(grok.api_endpoint) << "\",\n";
     file << "    \"api_key\": \"" << jsonEscape(grok.api_key) << "\",\n";
+    file << "    \"model\": \"" << jsonEscape(grok.model) << "\",\n";
     file << "    \"template\": \"" << jsonEscape(grok.template_format) << "\",\n";
     file << "    \"enabled\": " << (grok.enabled ? "true" : "false") << "\n";
     file << "  },\n";
@@ -381,6 +394,7 @@ void Config::save(const std::string& path) const {
     file << "    \"api_endpoint\": \"" << jsonEscape(openrouter.api_endpoint) << "\",\n";
     file << "    \"api_key\": \"" << jsonEscape(openrouter.api_key) << "\",\n";
     file << "    \"referer\": \"" << jsonEscape(openrouter.referer) << "\",\n";
+    file << "    \"model\": \"" << jsonEscape(openrouter.model) << "\",\n";
     file << "    \"template\": \"" << jsonEscape(openrouter.template_format) << "\",\n";
     file << "    \"enabled\": " << (openrouter.enabled ? "true" : "false") << "\n";
     file << "  }\n";

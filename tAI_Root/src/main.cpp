@@ -335,7 +335,7 @@ int main(int argc, char* argv[]) {
             logError("Client setup – grok", err);
             return 1;
         }
-        client = new GrokClient(api_key, config.grok.api_endpoint);
+        client = new GrokClient(api_key, config.grok.model, config.grok.api_endpoint);
 
     } else if (engine == "openrouter") {
         if (api_key.empty()) {
@@ -345,7 +345,7 @@ int main(int argc, char* argv[]) {
             logError("Client setup – openrouter", err);
             return 1;
         }
-        client = new OpenRouterClient(api_key, config.openrouter.api_endpoint,
+        client = new OpenRouterClient(api_key, config.openrouter.model, config.openrouter.api_endpoint,
                                       config.openrouter.referer);
     }
 

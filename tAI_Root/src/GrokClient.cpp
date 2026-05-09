@@ -6,8 +6,9 @@
 #include <nlohmann/json.hpp>
 
 GrokClient::GrokClient(const std::string& api_key,
+                       const std::string& model,
                        const std::string& endpoint)
-    : api_key_(api_key), endpoint_(endpoint) {}
+    : api_key_(api_key), model_(model), endpoint_(endpoint) {}
 
 std::string GrokClient::chat(const std::string& user_query,
                              const std::string& system_prompt) {
@@ -18,7 +19,7 @@ std::string GrokClient::chat(const std::string& user_query,
     std::string url = endpoint_;
 
     // Build JSON payload with proper escaping (OpenAI-compatible format)
-    std::string payload = R"({"model":"grok-1","messages":[)";
+    std::string payload = R"({"model":")" + jsonEscape(model_) + R"(","messages":[)" ;
     if (!system_prompt.empty()) {
         payload += R"({"role":"system","content":")" + jsonEscape(system_prompt) + R"("},)";
     }

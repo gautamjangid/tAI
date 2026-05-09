@@ -6,9 +6,10 @@
 #include <nlohmann/json.hpp>
 
 OpenRouterClient::OpenRouterClient(const std::string& api_key,
+                                 const std::string& model,
                                  const std::string& endpoint,
                                  const std::string& referer)
-    : api_key_(api_key), endpoint_(endpoint), referer_(referer) {}
+    : api_key_(api_key), model_(model), endpoint_(endpoint), referer_(referer) {}
 
 std::string OpenRouterClient::chat(const std::string& user_query,
                                  const std::string& system_prompt) {
@@ -24,7 +25,7 @@ std::string OpenRouterClient::chat(const std::string& user_query,
     }
 
     // Build JSON payload (OpenAI‑compatible format, using OpenRouter's "auto" model)
-    std::string payload = R"({"model":"auto","messages":[)";
+    std::string payload = "{\"model\":\"" + jsonEscape(model_) + "\",\"messages\":[" ;
 
     if (!system_prompt.empty()) {
         payload += R"({"role":"system","content":")" + jsonEscape(system_prompt) + R"("},)";
