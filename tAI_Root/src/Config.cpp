@@ -140,15 +140,16 @@ std::string Config::getDefaultConfigJson() const {
     ss << "    \"enabled\": false\n";
     ss << "  },\n";
     ss << "  \"ollama_cloud\": {\n";
-    ss << "    \"api_endpoint\": \"https://api.ollama.cloud\",\n";
+    ss << "    \"api_endpoint\": \"http://localhost:11434/api/chat\",\n";
     ss << "    \"api_key\": \"\",\n";
+    ss << "    \"model\": \"kimi-k2.6:cloud\",\n";
     ss << "    \"template\": \"\",\n";
     ss << "    \"enabled\": false\n";
     ss << "  },\n";
     ss << "  \"grok\": {\n";
     ss << "    \"api_endpoint\": \"https://api.groq.com/openai/v1/chat/completions\",\n";
     ss << "    \"api_key\": \"\",\n";
-    ss << "    \"model\": \"grok-1\",\n";
+    ss << "    \"model\": \"groq/compound-mini\",\n";
     ss << "    \"template\": \"\",\n";
     ss << "    \"enabled\": false\n";
     ss << "  },\n";
@@ -251,7 +252,7 @@ void Config::load(const std::string& path) {
         if (oc_end != std::string::npos) {
             std::string section = content.substr(oc_pos, oc_end - oc_pos + 1);
 
-            std::string endpoint = parseJsonString(section, "api_endpoint", "https://api.ollama.cloud");
+            std::string endpoint = parseJsonString(section, "api_endpoint", "http://localhost:11434/api/chat");
             if (!endpoint.empty()) {
                 ollama_cloud.api_endpoint = endpoint;
             }
@@ -259,6 +260,11 @@ void Config::load(const std::string& path) {
             std::string key = parseJsonString(section, "api_key", "");
             if (!key.empty()) {
                 ollama_cloud.api_key = key;
+            }
+
+            std::string model = parseJsonString(section, "model", "kimi-k2.6:cloud");
+            if (!model.empty()) {
+                ollama_cloud.model = model;
             }
 
             std::string tpl = parseJsonString(section, "template", "");
@@ -376,6 +382,7 @@ void Config::save(const std::string& path) const {
     file << "  \"ollama_cloud\": {\n";
     file << "    \"api_endpoint\": \"" << jsonEscape(ollama_cloud.api_endpoint) << "\",\n";
     file << "    \"api_key\": \"" << jsonEscape(ollama_cloud.api_key) << "\",\n";
+    file << "    \"model\": \"" << jsonEscape(ollama_cloud.model) << "\",\n";
     file << "    \"template\": \"" << jsonEscape(ollama_cloud.template_format) << "\",\n";
     file << "    \"enabled\": " << (ollama_cloud.enabled ? "true" : "false") << "\n";
     file << "  },\n";

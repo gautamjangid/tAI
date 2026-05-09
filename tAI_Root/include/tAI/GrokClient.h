@@ -20,7 +20,7 @@ public:
      * @param endpoint  API endpoint URL (defaults to https://api.groq.com/openai/v1/chat/completions).
      */
     GrokClient(const std::string& api_key,
-               const std::string& model = "grok-1",
+               const std::string& model = "groq/compound-mini",
                const std::string& endpoint = "https://api.groq.com/openai/v1/chat/completions");
 
     /**
