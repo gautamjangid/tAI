@@ -117,7 +117,7 @@ Edit it manually or run `tAI --config` to open it in your default editor:
     "enabled": false
   },
   "openrouter": {
-    "api_endpoint": "https://openrouter.ai/api/v1",
+    "api_endpoint": "https://openrouter.ai/api/v1/chat/completions",
     "api_key": "",
     "model": "inclusionai/ring-2.6-1t:free",
     "template": "",

@@ -34,16 +34,19 @@
  *   "ollama_cloud": {
  *     "api_endpoint": "http://localhost:11434/api/chat",
  *     "api_key": "",
+ *     "model": "",
  *     "enabled": false
  *   },
  *   "grok": {
  *     "api_endpoint": "https://api.groq.com/openai/v1/chat/completions",
  *     "api_key": "",
+ *     "model": "",
  *     "enabled": false
  *   },
  *   "openrouter": {
- *     "api_endpoint": "https://openrouter.ai/api/v1",
+ *     "api_endpoint": "https://openrouter.ai/api/v1/chat/completions",
  *     "api_key": "",
+ *     "model": "",
  *     "referer": "",
  *     "enabled": false
  *   }
@@ -123,7 +126,7 @@ struct OpenRouterEngineConfig {
     bool enabled;
 
     OpenRouterEngineConfig()
-        : api_endpoint("https://openrouter.ai/api/v1"),
+        : api_endpoint("https://openrouter.ai/api/v1/chat/completions"),
           api_key(""),
           referer(""),
           model("auto"),

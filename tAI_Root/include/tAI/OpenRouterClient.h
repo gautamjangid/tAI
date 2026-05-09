@@ -18,7 +18,7 @@ public:
      */
     OpenRouterClient(const std::string& api_key,
                      const std::string& model = "auto",
-                     const std::string& endpoint = "https://openrouter.ai/api/v1",
+                     const std::string& endpoint = "https://openrouter.ai/api/v1/chat/completions",
                      const std::string& referer = "");
 
     /**
