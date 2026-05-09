@@ -154,7 +154,7 @@ std::string Config::getDefaultConfigJson() const {
     ss << "    \"enabled\": false\n";
     ss << "  },\n";
     ss << "  \"openrouter\": {\n";
-    ss << "    \"api_endpoint\": \"https://openrouter.ai/api/v1\",\n";
+    ss << "    \"api_endpoint\": \"https://openrouter.ai/api/v1/chat/completions\",\n";
     ss << "    \"api_key\": \"\",\n";
     ss << "    \"referer\": \"\",\n";
     ss << "    \"model\": \"auto\",\n";
@@ -310,7 +310,7 @@ void Config::load(const std::string& path) {
         if (or_end != std::string::npos) {
             std::string section = content.substr(or_pos, or_end - or_pos + 1);
 
-            std::string endpoint = parseJsonString(section, "api_endpoint", "https://openrouter.ai/api/v1");
+            std::string endpoint = parseJsonString(section, "api_endpoint", "https://openrouter.ai/api/v1/chat/completions");
             if (!endpoint.empty()) {
                 openrouter.api_endpoint = endpoint;
             }
