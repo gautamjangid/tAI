@@ -100,12 +100,14 @@ struct OllamaCloudEngineConfig {
 struct GrokEngineConfig {
     std::string api_endpoint;
     std::string api_key;
+    std::string model;
     std::string template_format;
     bool enabled;
 
     GrokEngineConfig()
         : api_endpoint("https://api.groq.com/openai/v1/chat/completions"),
           api_key(""),
+          model("grok-1"),
           template_format(""),
           enabled(false) {}
 };
@@ -114,6 +116,7 @@ struct OpenRouterEngineConfig {
     std::string api_endpoint;
     std::string api_key;
     std::string referer;
+    std::string model;
     std::string template_format;
     bool enabled;
 
@@ -121,6 +124,7 @@ struct OpenRouterEngineConfig {
         : api_endpoint("https://openrouter.ai/api/v1"),
           api_key(""),
           referer(""),
+          model("auto"),
           template_format(""),
           enabled(false) {}
 };
