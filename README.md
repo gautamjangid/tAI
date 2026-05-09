@@ -96,8 +96,9 @@ Edit it manually or run `tAI --config` to open it in your default editor:
     "enabled": true
   },
   "ollama_cloud": {
-    "api_endpoint": "https://api.ollama.cloud",
+    "api_endpoint": "http://localhost:11434/api/chat",
     "api_key": "",
+    "model": "kimi-k2.6:cloud",
     "template": "",
     "enabled": false
   },
@@ -111,13 +112,14 @@ Edit it manually or run `tAI --config` to open it in your default editor:
   "grok": {
     "api_endpoint": "https://api.groq.com/openai/v1/chat/completions",
     "api_key": "",
+    "model": "meta-llama/Llama-2-7b-chat-hf",
     "template": "",
     "enabled": false
   },
   "openrouter": {
     "api_endpoint": "https://openrouter.ai/api/v1",
     "api_key": "",
-    "referer": "",
+    "model": "inclusionai/ring-2.6-1t:free",
     "template": "",
     "enabled": false
   }

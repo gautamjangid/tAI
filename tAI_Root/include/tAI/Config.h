@@ -32,7 +32,7 @@
  *     "enabled": false
  *   },
  *   "ollama_cloud": {
- *     "api_endpoint": "https://api.ollama.cloud",
+ *     "api_endpoint": "http://localhost:11434/api/chat",
  *     "api_key": "",
  *     "enabled": false
  *   },
@@ -87,12 +87,14 @@ struct HuggingfaceEngineConfig {
 struct OllamaCloudEngineConfig {
     std::string api_endpoint;
     std::string api_key;
+    std::string model;
     std::string template_format;
     bool enabled;
 
     OllamaCloudEngineConfig()
-        : api_endpoint("https://api.ollama.cloud"),
+        : api_endpoint("http://localhost:11434/api/chat"),
           api_key(""),
+          model("kimi-k2.6:cloud"),
           template_format(""),
           enabled(false) {}
 };
@@ -107,7 +109,7 @@ struct GrokEngineConfig {
     GrokEngineConfig()
         : api_endpoint("https://api.groq.com/openai/v1/chat/completions"),
           api_key(""),
-          model("grok-1"),
+          model("groq/compound-mini"),
           template_format(""),
           enabled(false) {}
 };

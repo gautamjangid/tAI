@@ -314,7 +314,7 @@ int main(int argc, char* argv[]) {
             logError("Client setup – ollama_cloud", err);
             return 1;
         }
-        client = new OllamaCloudClient(api_key, config.ollama_cloud.api_endpoint);
+        client = new OllamaCloudClient(api_key, config.ollama_cloud.model, config.ollama_cloud.api_endpoint);
 
     } else if (engine == "huggingface") {
         if (api_key.empty()) {
